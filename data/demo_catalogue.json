@@ -1,0 +1,16 @@
+[
+ {"id": "demo-snk-white-1", "title": "Baskets blanches cuir femme", "store": "DEMO", "price_dzd": 6900, "category": "shoes", "tags": ["baskets", "chaussures", "blanc", "blanche", "blanches", "femme", "sneakers", "white"]},
+ {"id": "demo-snk-white-2", "title": "Baskets blanches sport homme", "store": "DEMO", "price_dzd": 5400, "category": "shoes", "tags": ["baskets", "chaussures", "blanc", "blanches", "homme", "sneakers", "white"]},
+ {"id": "demo-snk-black-1", "title": "Baskets noires running", "store": "DEMO", "price_dzd": 7200, "category": "shoes", "tags": ["baskets", "chaussures", "noir", "noires", "running", "sneakers", "black"]},
+ {"id": "demo-sandal-1", "title": "Sandales plates été femme", "store": "DEMO", "price_dzd": 3100, "category": "shoes", "tags": ["sandales", "chaussures", "été", "femme"]},
+ {"id": "demo-dress-1", "title": "Robe longue fleurie été", "store": "DEMO", "price_dzd": 7400, "category": "fashion", "tags": ["robe", "été", "fleurie", "longue", "femme", "dress", "summer"]},
+ {"id": "demo-dress-2", "title": "Robe légère coton été", "store": "DEMO", "price_dzd": 4900, "category": "fashion", "tags": ["robe", "été", "coton", "femme", "dress", "summer"]},
+ {"id": "demo-dress-3", "title": "Robe de soirée satin", "store": "DEMO", "price_dzd": 11800, "category": "fashion", "tags": ["robe", "soirée", "satin", "femme", "dress"]},
+ {"id": "demo-bag-1", "title": "Sac à main noir femme", "store": "DEMO", "price_dzd": 5600, "category": "bag", "tags": ["sac", "main", "noir", "femme", "handbag", "bag"]},
+ {"id": "demo-bag-2", "title": "Sac à dos école", "store": "DEMO", "price_dzd": 3900, "category": "bag", "tags": ["sac", "dos", "école", "backpack", "bag"]},
+ {"id": "demo-watch-1", "title": "Montre femme bracelet cuir", "store": "DEMO", "price_dzd": 4500, "category": "jewelry", "tags": ["montre", "femme", "watch"]},
+ {"id": "demo-watch-2", "title": "Montre homme acier", "store": "DEMO", "price_dzd": 6200, "category": "jewelry", "tags": ["montre", "homme", "watch"]},
+ {"id": "demo-pants-1", "title": "Pantalon homme chino", "store": "DEMO", "price_dzd": 4300, "category": "fashion", "tags": ["pantalon", "homme", "trousers"]},
+ {"id": "demo-earbuds-1", "title": "Écouteurs sans fil", "store": "DEMO", "price_dzd": 3600, "category": "electronics", "tags": ["écouteurs", "sans", "fil", "earbuds"]},
+ {"id": "demo-perfume-1", "title": "Parfum femme floral", "store": "DEMO", "price_dzd": 5200, "category": "beauty", "tags": ["parfum", "femme", "perfume"]}
+]
