@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wfarhali Agent</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="brand-mark">W</span><span><b>wfarhali</b><small>Agent</small></span></div>
+  <span class="mode" id="mode" title="model / catalogue"></span>
+</header>
+
+<main class="chat" id="chat" aria-live="polite">
+  <section class="hello" id="hello">
+    <h1>واش حاب تشري اليوم؟</h1>
+    <p class="en">What would you like to buy today? Speak, type or send a photo, in Darija, Arabic or French.</p>
+    <div class="examples">
+      <button type="button" data-example="حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية 15 ألف، والتوصيل لباتنة">صباط أبيض + روبة صيف بـ 15 ألف</button>
+      <button type="button" data-example="ساك لمرا أسود وساعة بـ 10 آلاف">ساك أسود + ساعة بـ 10 آلاف</button>
+      <button type="button" data-example="عندي عرس الجمعة">عندي عرس الجمعة</button>
+    </div>
+  </section>
+</main>
+
+<form class="composer" id="composer" autocomplete="off">
+  <div class="photo-chip" id="photoChip" hidden><img id="photoThumb" alt=""><button type="button" id="photoRemove" aria-label="Remove photo">×</button></div>
+  <div class="bar">
+    <button type="button" class="icon" id="photoBtn" aria-label="Photo / صورة"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+    <input type="file" id="photoInput" accept="image/*" hidden>
+    <input type="text" id="text" maxlength="600" placeholder="اكتب طلبك… · Type…" enterkeyhint="send">
+    <button type="button" class="icon mic" id="micBtn" aria-label="Speak / احكي"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    <button type="submit" class="send" id="sendBtn" aria-label="Send / ابعث"><svg viewBox="0 0 24 24"><path d="M20 12 4 4l3 8-3 8z"/></svg></button>
+  </div>
+</form>
+
+<template id="tplUser"><div class="msg user"><img class="msg-photo" alt="" hidden><p></p></div></template>
+<template id="tplSteps"><div class="msg agent steps"><p class="title">الوكيل يخدم على طلبك <span class="en">The agent is working on your request</span></p><ol></ol></div></template>
+<template id="tplCard"><article class="card"><div class="media"></div><div class="body"><p class="need"></p><h3></h3><p class="store"></p><p class="price"></p></div></article></template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
