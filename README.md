@@ -36,7 +36,9 @@ Muse Voice Transcribe ─► Muse Spark (tool calling, sees photos)
 
 Design choices:
 - **The model decides, tools compute.** Muse Spark chooses what to search and which products are relevant; prices come only from tool results and totals from the planner, so the agent never invents a number.
+- **Money the way Algerians say it.** Budgets are often given in centimes ("300 alf" = 3,000 DZD, "melyoun w nos" = 15,000 DZD); the agent converts, repeats the amount in DZD in its summary so the customer can correct it, and asks when the reading is unclear.
 - **Honest over budget.** When nothing fits, the agent shows the cheapest basket and by how much it is over.
+- **Swap.** Each proposed product has a "بدّل · Swap" button: the agent re-plans the basket without the rejected product (two model calls, no new search) and keeps the other choices.
 - **One clarifying question** when the request is not actionable, then it continues with the whole conversation.
 - **Few model calls.** The catalogue searches run inside the understanding step, so a request needs three model calls (understand, plan, propose) whatever the number of products; the conversation is prompt-cached.
 - **Human in the loop.** Nothing is ordered without the customer's confirmation; Wfarhali's team confirms the final price.
@@ -45,8 +47,8 @@ Design choices:
 
 | Model | Use | Status |
 |---|---|---|
-| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live loop verified (Oct 27)**: a Darija request ran through the full loop (understand → search → plan → propose) in 4 model calls, about 9,000 tokens in total with prompt caching; photos not yet run live |
-| **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | client written and unit-tested against the documented API shape; live run not yet done |
+| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live verified (Oct 27)**: Darija requests run through the full loop (understand + search → plan → propose) in 3 model calls, including against the live Wfarhali catalogue, with centime budgets and the swap flow; photos not yet run live |
+| **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | endpoint and response shape verified live (Oct 27); transcription of real Darija speech not yet verified (first browser test returned an empty transcript, diagnostics added) |
 | SAM 3.1 | product cut-out from photos | planned |
 
 ## Run it

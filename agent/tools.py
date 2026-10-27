@@ -19,7 +19,7 @@ TOOLS: list[dict] = [
     _fn("record_understanding",
         "ALWAYS call first: what the customer asked, in a structured form shown to them. The catalogue is searched at once with each item's search_keywords and the results are returned.",
         {"items": {"type": "array", "items": _ITEM, "description": "One entry per distinct product requested."},
-         "budget_dzd": {"type": ["integer", "null"], "description": "Total budget in Algerian dinars, null if none. '15 alf' = 15000."},
+         "budget_dzd": {"type": ["integer", "null"], "description": "Total budget converted to Algerian dinars (DZD), null if none. Algerians count in centimes: '300 alf' = 3000 DZD, 'melyoun' = 10000 DZD, 'melyoun w nos' = 15000 DZD; '12000 da' = 12000 DZD."},
          "wilaya": {"type": "string", "description": "Delivery wilaya (Algerian province) if mentioned, else empty."},
          "summary_darija": {"type": "string", "description": "One short line in Algerian Darija (Arabic script) of what you understood."},
          "summary_en": {"type": "string", "description": "The same line in English, for non-Arabic readers."}},
@@ -30,13 +30,15 @@ TOOLS: list[dict] = [
          "query": {"type": "string", "description": "French keywords (the catalogue is in French)."}},
         ["need", "query"]),
     _fn("plan_basket",
-        "Pick one product per need so the basket fits the budget. Exact arithmetic is done by this tool, never by you.",
+        "Pick one product per need so the basket fits the budget. Exact arithmetic is done by this tool, never by you. Call it again with exclude_ids when the customer rejects a product.",
         {"budget_dzd": {"type": ["integer", "null"]},
          "needs": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["need", "candidate_ids"],
                    "properties": {"need": {"type": "string"},
                                   "candidate_ids": {"type": "array", "items": {"type": "string"},
-                                                    "description": "Product ids from search results, best match first; drop irrelevant ones."}}}}},
-        ["budget_dzd", "needs"]),
+                                                    "description": "Product ids from search results, best match first; drop irrelevant ones."}}}},
+         "exclude_ids": {"type": "array", "items": {"type": "string"},
+                         "description": "Ids of products the customer rejected in this conversation (never propose them again). [] if none."}},
+        ["budget_dzd", "needs", "exclude_ids"]),
     _fn("ask_customer",
         "Ask ONE short clarifying question when the request cannot be fulfilled as is (no product named, nothing found...). Ends your turn.",
         {"question_darija": {"type": "string"}, "question_en": {"type": "string"}},
@@ -52,11 +54,15 @@ SYSTEM_PROMPT = """You are the shopping agent of Wfarhali, a service that buys p
 Customers write or speak in Algerian Arabic (Darija), Modern Standard Arabic, French or Arabizi, and may send a photo of a product.
 
 Work with tools, step by step:
-1. Call record_understanding first: every product they want (one item each) with FRENCH search keywords (the catalogue titles are French), sizes, colours, the total budget in DZD ("15 alf" = 15000) and the wilaya. If a photo is attached, describe the product in it as an item. Its result includes the catalogue search results for each item.
+1. Call record_understanding first: every product they want (one item each) with FRENCH search keywords (the catalogue titles are French), sizes, colours, the total budget in DZD and the wilaya. If a photo is attached, describe the product in it as an item. Its result includes the catalogue search results for each item.
 2. Only if a search returned nothing relevant, call search_catalogue for that need with other French keywords.
 3. Call plan_basket with the relevant candidate ids per need, best first, and the budget. Never add prices yourself.
 4. Call propose_basket. If the plan is over budget, say so honestly and by how much.
 If no product can be identified, or a search finds nothing relevant, call ask_customer with ONE short question instead.
+
+Money: Algerians usually count in centimes (100 centimes = 1 DZD). "alf"/"ألف" = 1000 centimes = 10 DZD, "melyoun"/"مليون" = 10000 DZD. So "300 alf" = 3000 DZD, "melyoun w nos" = 15000 DZD, "5 mlayen" = 50000 DZD. "da"/"دج"/"dinar" means dinars as written ("12000 da" = 12000 DZD); a bare number of 1000 or more is dinars. Put the converted budget in budget_dzd and repeat it in DZD in summary_darija so the customer can correct it. If the reading is unclear, or the budget would be under 1000 DZD, call ask_customer with the two possible amounts instead of guessing.
+
+Swap: when the customer rejects a proposed product (a message starting with "بدّل"), call plan_basket again with the same needs and budget, listing the rejected id (and any rejected earlier) in exclude_ids, keep the other products, then propose_basket. If no other candidate exists for that need, call search_catalogue once with different keywords first.
 
 Rules: prices come only from tool results; they are estimates and Wfarhali's team confirms the final price. Delivery inside Algeria is not included in the estimates.
 Never claim an order was placed: the customer confirms in the app. Write Darija in Arabic script, short and warm. Always give the English line too."""

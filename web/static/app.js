@@ -63,6 +63,14 @@
       $('h3', card).textContent = item.title;
       $('.store', card).textContent = item.store || 'Store';
       $('.price', card).textContent = item.price_dzd ? dzd(item.price_dzd) : 'السعر في الخطوة الجاية';
+      const swap = el('button', 'swap', 'بدّل · Swap');
+      swap.type = 'button';
+      swap.addEventListener('click', () => {
+        node.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+        send({ text: `بدّل ${item.need}: ماشي «${item.title}» (id ${item.id})، اقترح لي منتج آخر لنفس الحاجة في نفس الميزانية.`,
+               label: `بدّل: ${item.title}` });
+      });
+      $('.body', card).append(swap);
       cards.append(card);
     });
     node.append(cards);
@@ -87,12 +95,12 @@
     chat.append(node); scroll();
   }
 
-  async function send({ text = '', audio = null } = {}) {
+  async function send({ text = '', audio = null, label = '' } = {}) {
     if (busy) return;
     const usedPhoto = photo;
     if (!text && !audio && !usedPhoto) return;
     busy = true;
-    addUser(audio ? '🎤 …' : text, usedPhoto ? usedPhoto.url : null);
+    addUser(audio ? '🎤 …' : (label || text), usedPhoto ? usedPhoto.url : null);
     const userBubble = chat.lastElementChild;
     clearPhoto(); input.value = '';
     const box = stepsBox();

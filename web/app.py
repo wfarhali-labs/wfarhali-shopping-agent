@@ -45,7 +45,7 @@ DEBUG_AUDIO_FILE = ROOT.parent / "last_voice.wav" if os.environ.get("WFAGENT_DEB
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 agent = ShoppingAgent(llm_module.from_settings(settings), catalogue_module.from_settings(settings), settings.max_steps)
 transcriber = speech_module.from_settings(settings)
-sessions: "OrderedDict[str, tuple[float, list[dict]]]" = OrderedDict()   # in memory: a demo, not a shop backend
+sessions: "OrderedDict[str, tuple[float, list[dict], dict]]" = OrderedDict()   # in memory (seen, messages, products): a demo, not a shop backend
 
 app = FastAPI(title="Wfarhali shopping agent", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
@@ -61,16 +61,16 @@ def health():
     return {"ok": True, "model": agent.model.name, "catalogue": agent.catalogue.name, "speech": transcriber.name}
 
 
-def _history(session_id: str) -> list[dict] | None:
+def _history(session_id: str) -> tuple[list[dict] | None, dict]:
     now = time.time()
-    for key in [k for k, (seen, _) in sessions.items() if now - seen > SESSION_TTL]:
+    for key in [k for k, (seen, _, _) in sessions.items() if now - seen > SESSION_TTL]:
         sessions.pop(key, None)
     entry = sessions.get(session_id)
-    return entry[1] if entry else None
+    return (entry[1], entry[2]) if entry else (None, {})
 
 
-def _store(session_id: str, messages: list[dict]) -> None:
-    sessions[session_id] = (time.time(), messages)
+def _store(session_id: str, messages: list[dict], products: dict) -> None:
+    sessions[session_id] = (time.time(), messages, products)
     sessions.move_to_end(session_id)
     while len(sessions) > MAX_SESSIONS:
         sessions.popitem(last=False)
@@ -103,6 +103,7 @@ async def turn(text: str = Form(""), session_id: str = Form(""), audio: UploadFi
     if not text and not image_url:
         raise HTTPException(422, "say, type or send a photo")
     session_id = session_id if session_id in sessions else secrets.token_urlsafe(12)
-    result = agent.run(_history(session_id), text, image_url)
-    _store(session_id, result.messages)
+    history, products = _history(session_id)
+    result = agent.run(history, text, image_url, products=products)
+    _store(session_id, result.messages, result.products)
     return {"session_id": session_id, "transcript": transcript, **result.public()}

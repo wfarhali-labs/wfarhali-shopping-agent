@@ -36,6 +36,7 @@ class TurnResult:
     proposal: dict | None = None
     question: dict | None = None
     error: str = ""
+    products: dict = field(default_factory=dict)       # products seen so far (id -> Product), to continue the next turn
 
     def public(self) -> dict:
         return {"status": self.status, "steps": [s.__dict__ for s in self.steps], "understanding": self.understanding,
@@ -54,31 +55,37 @@ class ShoppingAgent:
         parts.append({"type": "image_url", "image_url": {"url": image_data_url}})
         return {"role": "user", "content": parts}
 
-    def run(self, history: list[dict] | None, text: str = "", image_data_url: str | None = None) -> TurnResult:
+    def run(self, history: list[dict] | None, text: str = "", image_data_url: str | None = None, *,
+            products: dict[str, Product] | None = None) -> TurnResult:
+        """One customer turn. `history` and `products` come from the previous TurnResult to continue a conversation."""
         messages = list(history or []) or [{"role": "developer", "content": SYSTEM_PROMPT}]
         messages.append(self.user_message(text, image_data_url))
         steps: list[Step] = []
-        state = {"products": {}, "understanding": None, "plan": None}
+        state = {"products": dict(products or {}), "understanding": None, "plan": None}
+
+        def done(status, **kw):
+            return TurnResult(status, steps, messages, state["understanding"], products=state["products"], **kw)
+
         for _ in range(self.max_steps):
             try:
                 turn = self.model.complete(messages, TOOLS)
             except ModelError as exc:
-                return TurnResult("error", steps, messages, error=str(exc))
+                return done("error", error=str(exc))
             messages.append(turn.as_message())
             if not turn.tool_calls:   # plain text: treat it as a question to the customer
                 question = {"question_darija": turn.content, "question_en": ""}
                 steps.append(Step("ask_customer", *STEP_LABELS["ask_customer"], question))
-                return TurnResult("question", steps, messages, state["understanding"], question=question)
+                return done("question", question=question)
             for call in turn.tool_calls:
                 result, step = self._execute(call.name, call.arguments, state)
                 steps.append(step)
                 steps.extend(state.pop("extra_steps", []))   # searches run on the agent's own initiative
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps(result, ensure_ascii=False)})
                 if call.name == "ask_customer" and step.ok:
-                    return TurnResult("question", steps, messages, state["understanding"], question=result)
+                    return done("question", question=result)
                 if call.name == "propose_basket" and step.ok:
-                    return TurnResult("proposal", steps, messages, state["understanding"], proposal=result)
-        return TurnResult("error", steps, messages, state["understanding"], error="the agent did not finish in time")
+                    return done("proposal", proposal=result)
+        return done("error", error="the agent did not finish in time")
 
     # ---- tools ----
     def _execute(self, name: str, args: dict, state: dict) -> tuple[dict, Step]:
@@ -122,14 +129,17 @@ class ShoppingAgent:
         found: list[Product] = self.catalogue.search(query)
         for product in found:
             state["products"][product.id] = product
-        public = [p.public() for p in found]
-        return {"need": need, "query": query, "products": public}, {"need": need, "query": query, "count": len(found),
-                                                                     "thumbnails": [p["image_url"] for p in public[:3] if p["image_url"]]}
+        # The model only needs what it decides with; links and images stay server-side and reach the customer in the proposal.
+        for_model = [{"id": p.id, "title": p.title[:90], "store": p.store, "price_dzd": p.price_dzd, "category": p.category} for p in found]
+        thumbnails = [p.image_url for p in found[:3] if p.image_url]
+        return {"need": need, "query": query, "products": for_model}, {"need": need, "query": query, "count": len(found),
+                                                                        "thumbnails": thumbnails}
 
     def _tool_plan_basket(self, args, state):
+        excluded = {str(pid) for pid in args.get("exclude_ids") or []}       # products the customer rejected ("بدّل")
         needs = {}
         for entry in args["needs"]:
-            ids = [str(pid) for pid in entry["candidate_ids"] if str(pid) in state["products"]]
+            ids = [str(pid) for pid in entry["candidate_ids"] if str(pid) in state["products"] and str(pid) not in excluded]
             needs[str(entry["need"])] = [(pid, state["products"][pid].price_dzd) for pid in ids]
         budget = args.get("budget_dzd")
         plan = plan_basket(needs, int(budget) if budget else None)

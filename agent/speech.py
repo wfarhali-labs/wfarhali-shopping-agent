@@ -94,7 +94,7 @@ class MetaTranscriber:
 @dataclass
 class MockTranscriber:
     """Offline: returns a fixed Darija sentence so the voice flow can be demonstrated without an API."""
-    sentence: str = "حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية 15 ألف، والتوصيل لباتنة"
+    sentence: str = "حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص، والتوصيل لباتنة"
     name: str = "mock"
 
     def transcribe(self, wav: bytes) -> str:

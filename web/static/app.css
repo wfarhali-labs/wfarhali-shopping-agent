@@ -38,6 +38,8 @@ body { font-family: "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif; color
 .card .need { margin: 0; color: var(--muted); font-size: 13px; }
 .card .store { display: inline-block; margin: 2px 0; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; direction: ltr; }
 .card .price { margin: 4px 0 0; color: var(--brand-dark); font-weight: 800; font-size: 18px; }
+.card .swap { margin-top: 6px; border: 1.5px solid var(--brand); background: #fff; color: var(--brand); border-radius: 10px; padding: 4px 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.card .swap:disabled { opacity: .5; cursor: default; }
 .total { margin-top: 10px; border-radius: 14px; padding: 10px 12px; background: var(--okbg); color: var(--ok); font-weight: 700; }
 .total.over { background: var(--warnbg); color: var(--warn); }
 .note { margin-top: 8px; font-size: 12px; color: var(--muted); }

@@ -24,7 +24,7 @@ def test_page_and_health():
 def test_text_turn_then_follow_up_keeps_the_conversation():
     first = client.post("/api/turn", data={"text": "عندي عرس الجمعة"}).json()
     assert first["status"] == "question" and first["session_id"]
-    second = client.post("/api/turn", data={"text": "روبة سهرة بـ 12 ألف", "session_id": first["session_id"]}).json()
+    second = client.post("/api/turn", data={"text": "روبة سهرة بـ مليون و200", "session_id": first["session_id"]}).json()
     assert second["status"] == "proposal" and second["session_id"] == first["session_id"]
     assert second["proposal"]["items"][0]["need"] == "dress"
     assert "messages" not in second                                    # the raw conversation stays on the server

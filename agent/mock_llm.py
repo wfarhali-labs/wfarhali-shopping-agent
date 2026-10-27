@@ -6,6 +6,7 @@ Its "understanding" is the small rule set in darija.py; it cannot see photos.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 
 from . import darija
@@ -19,19 +20,26 @@ def _since_last_user(messages: list[dict]) -> tuple[list[dict], dict | None]:
     return messages, None
 
 
-def _user_text(messages: list[dict]) -> tuple[str, bool]:
-    """All user text so far (a clarification answer completes the first request) and whether the last turn has a photo."""
-    texts, photo = [], False
+SWAP = re.compile(r"^\s*بدّل|\(id ([^)]+)\)")
+
+
+def _user_text(messages: list[dict]) -> tuple[str, bool, set[str]]:
+    """All user text so far (a clarification answer completes the first request), whether the last turn has a photo,
+    and the ids of products the customer rejected with the swap button (those messages are not part of the request)."""
+    texts, photo, rejected = [], False, set()
     for message in messages:
         if message["role"] != "user":
             continue
         content = message["content"]
-        if isinstance(content, str):
-            texts.append(content)
-        else:
-            texts += [part.get("text", "") for part in content if part.get("type") == "text"]
+        parts = [content] if isinstance(content, str) else [part.get("text", "") for part in content if part.get("type") == "text"]
+        if not isinstance(content, str):
             photo = any(part.get("type") == "image_url" for part in content)
-    return " و ".join(t for t in texts if t), photo
+        for text in parts:
+            if text.strip().startswith("بدّل"):
+                rejected |= {m for m in re.findall(r"\(id ([^)]+)\)", text)}
+            elif text:
+                texts.append(text)
+    return " و ".join(texts), photo, rejected
 
 
 @dataclass
@@ -52,8 +60,8 @@ class MockChatModel:
         def call(name, **arguments):
             return ModelTurn(tool_calls=[ToolCall(id=f"mock_{len(calls) + 1}", name=name, arguments=arguments)])
 
+        text, photo, rejected = _user_text(messages)
         if "record_understanding" not in done:
-            text, photo = _user_text(messages)
             request = darija.parse(text)
             if not request.items:
                 if photo:
@@ -75,8 +83,8 @@ class MockChatModel:
                 if not found:
                     return call("ask_customer", question_darija=f"ما لقيتش «{search['query']}». تقدر توصفلي المنتج بطريقة أخرى؟",
                                 question_en=f"I found nothing for '{search['query']}'. Could you describe it differently?")
-                needs.append({"need": search["need"], "candidate_ids": [p["id"] for p in found]})
-            return call("plan_basket", budget_dzd=understanding.get("budget_dzd"), needs=needs)
+                needs.append({"need": search["need"], "candidate_ids": [p["id"] for p in found if p["id"] not in rejected]})
+            return call("plan_basket", budget_dzd=understanding.get("budget_dzd"), needs=needs, exclude_ids=sorted(rejected))
         plan = next(results[cid] for cid, (name, _) in calls.items() if name == "plan_basket")
         if plan.get("within_budget", True):
             return call("propose_basket", message_darija="هذا أحسن اقتراح في حدود ميزانيتك. أكّد باش نبعثو طلب السعر.",

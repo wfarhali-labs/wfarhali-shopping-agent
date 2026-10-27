@@ -77,13 +77,20 @@ def _find(table, text):
 def parse(text: str) -> Request:
     text = (text or "").translate(_DIGITS)
     budget = None
-    money = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:ألف|الف|آلاف|alf|k\b)", text, flags=re.IGNORECASE)
-    if money:
-        budget = int(float(money.group(1).replace(",", ".")) * 1000)
-    else:
-        money = re.search(r"(\d[\d\s]{2,})\s*(?:دج|دينار|da\b|dzd\b)", text, flags=re.IGNORECASE)
-        if money:
-            budget = int(re.sub(r"\s", "", money.group(1)))
+    # Algerians count in centimes: "ألف" (1000 centimes) = 10 DZD, "مليون" = 10 000 DZD, "مليون ونص" = 15 000 DZD.
+    dinars = re.search(r"(\d[\d\s]{2,})\s*(?:دج|دينار|da\b|dzd\b)", text, flags=re.IGNORECASE)
+    million = re.search(r"(\d+(?:[.,]\d+)?)?\s*(?:مليون|ملاين|ملايين|million)(\s*و\s*نص)?", text, flags=re.IGNORECASE)
+    thousand = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:ألف|الف|آلاف|الاف|alf)", text, flags=re.IGNORECASE)
+    k = re.search(r"(\d+(?:[.,]\d+)?)\s*k\b", text, flags=re.IGNORECASE)
+    if dinars:
+        budget = int(re.sub(r"\s", "", dinars.group(1)))
+    elif million:
+        count = float((million.group(1) or "1").replace(",", ".")) + (0.5 if million.group(2) else 0)
+        budget = int(count * 10_000)
+    elif thousand:
+        budget = int(float(thousand.group(1).replace(",", ".")) * 10)
+    elif k:
+        budget = int(float(k.group(1).replace(",", ".")) * 1000)
     wilaya = next((name for key, name in WILAYAS.items() if re.search(rf"(?:^|[\sلـ]){re.escape(key)}", text, flags=re.IGNORECASE)), "")
     segments = re.split(r"\s+و(?=\S)|\s+و\s+|,|،|\+|\bet\b|\band\b", text)
     items: list[Item] = []
