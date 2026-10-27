@@ -109,3 +109,20 @@ def test_meta_model_errors():
     bad = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(429, text="slow down")))
     with pytest.raises(ModelError, match="429"):
         MetaChatModel(api_key="k", client=bad).complete([], [])
+
+
+def test_understanding_searches_at_once_so_the_model_can_plan_directly():
+    """Three model calls, not four or more: understand (searches run inside), plan, propose."""
+    model = Scripted([
+        ModelTurn(tool_calls=[ToolCall("1", "record_understanding", {
+            "items": [{"need": "white sneakers", "search_keywords": "baskets blanc"}, {"need": "dress", "search_keywords": "robe"}],
+            "budget_dzd": 15000, "wilaya": "", "summary_darija": "صباط وروبة", "summary_en": "sneakers and a dress"})]),
+        ModelTurn(tool_calls=[ToolCall("2", "plan_basket", {"budget_dzd": 15000, "needs": [
+            {"need": "white sneakers", "candidate_ids": ["demo-snk-white-1"]}, {"need": "dress", "candidate_ids": ["demo-dress-1"]}]})]),
+        ModelTurn(tool_calls=[ToolCall("3", "propose_basket", {"message_darija": "هاك", "message_en": "here"})]),
+    ])
+    result = ShoppingAgent(model, DemoCatalogue()).run(None, "x")
+    assert [s.tool for s in result.steps] == ["record_understanding", "search_catalogue", "search_catalogue", "plan_basket", "propose_basket"]
+    searches = json.loads(result.messages[3]["content"])["searches"]          # the tool result of record_understanding
+    assert [s["need"] for s in searches] == ["white sneakers", "dress"] and all(s["products"] for s in searches)
+    assert result.status == "proposal" and len(result.proposal["items"]) == 2

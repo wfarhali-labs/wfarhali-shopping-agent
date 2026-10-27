@@ -65,20 +65,17 @@ class MockChatModel:
             return call("record_understanding",
                         items=[{"need": i.need, "search_keywords": i.search_keywords, "size": i.size, "color": i.color} for i in request.items],
                         budget_dzd=request.budget_dzd, wilaya=request.wilaya, summary_darija=summary_darija, summary_en=summary_en)
-        understanding = next(args for name, args in calls.values() if name == "record_understanding")
-        searched = {args["need"] for name, args in calls.values() if name == "search_catalogue"}
-        for item in understanding["items"]:
-            if item["need"] not in searched:
-                return call("search_catalogue", need=item["need"], query=item["search_keywords"])
+        understanding_id, understanding = next((cid, args) for cid, (name, args) in calls.items() if name == "record_understanding")
         if "plan_basket" not in done:
+            # record_understanding already searched the catalogue for every item; its result carries the products
+            searches = results.get(understanding_id, {}).get("searches", [])
             needs = []
-            for call_id, (name, args) in calls.items():
-                if name == "search_catalogue":
-                    found = results.get(call_id, {}).get("products", [])
-                    if not found:
-                        return call("ask_customer", question_darija=f"ما لقيتش «{args['query']}». تقدر توصفلي المنتج بطريقة أخرى؟",
-                                    question_en=f"I found nothing for '{args['query']}'. Could you describe it differently?")
-                    needs.append({"need": args["need"], "candidate_ids": [p["id"] for p in found]})
+            for search in searches:
+                found = search.get("products", [])
+                if not found:
+                    return call("ask_customer", question_darija=f"ما لقيتش «{search['query']}». تقدر توصفلي المنتج بطريقة أخرى؟",
+                                question_en=f"I found nothing for '{search['query']}'. Could you describe it differently?")
+                needs.append({"need": search["need"], "candidate_ids": [p["id"] for p in found]})
             return call("plan_basket", budget_dzd=understanding.get("budget_dzd"), needs=needs)
         plan = next(results[cid] for cid, (name, _) in calls.items() if name == "plan_basket")
         if plan.get("within_budget", True):

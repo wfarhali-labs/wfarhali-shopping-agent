@@ -17,7 +17,7 @@ _ITEM = {"type": "object", "additionalProperties": False, "required": ["need", "
 
 TOOLS: list[dict] = [
     _fn("record_understanding",
-        "ALWAYS call first: what the customer asked, in a structured form shown to them for transparency.",
+        "ALWAYS call first: what the customer asked, in a structured form shown to them. The catalogue is searched at once with each item's search_keywords and the results are returned.",
         {"items": {"type": "array", "items": _ITEM, "description": "One entry per distinct product requested."},
          "budget_dzd": {"type": ["integer", "null"], "description": "Total budget in Algerian dinars, null if none. '15 alf' = 15000."},
          "wilaya": {"type": "string", "description": "Delivery wilaya (Algerian province) if mentioned, else empty."},
@@ -25,7 +25,7 @@ TOOLS: list[dict] = [
          "summary_en": {"type": "string", "description": "The same line in English, for non-Arabic readers."}},
         ["items", "budget_dzd", "wilaya", "summary_darija", "summary_en"]),
     _fn("search_catalogue",
-        "Search the partner-store catalogue for ONE need. Results carry an estimated total price in DZD (fees included).",
+        "Search the catalogue AGAIN for ONE need with different French keywords, only when the results returned by record_understanding were empty or irrelevant. Results carry an estimated total price in DZD (fees included).",
         {"need": {"type": "string", "description": "The need label from record_understanding."},
          "query": {"type": "string", "description": "French keywords (the catalogue is in French)."}},
         ["need", "query"]),
@@ -52,8 +52,8 @@ SYSTEM_PROMPT = """You are the shopping agent of Wfarhali, a service that buys p
 Customers write or speak in Algerian Arabic (Darija), Modern Standard Arabic, French or Arabizi, and may send a photo of a product.
 
 Work with tools, step by step:
-1. Call record_understanding first: every product they want (one item each), sizes, colours, the total budget in DZD ("15 alf" = 15000) and the wilaya. If a photo is attached, describe the product in it as an item.
-2. Call search_catalogue once per item, with FRENCH keywords (the catalogue titles are French).
+1. Call record_understanding first: every product they want (one item each) with FRENCH search keywords (the catalogue titles are French), sizes, colours, the total budget in DZD ("15 alf" = 15000) and the wilaya. If a photo is attached, describe the product in it as an item. Its result includes the catalogue search results for each item.
+2. Only if a search returned nothing relevant, call search_catalogue for that need with other French keywords.
 3. Call plan_basket with the relevant candidate ids per need, best first, and the budget. Never add prices yourself.
 4. Call propose_basket. If the plan is over budget, say so honestly and by how much.
 If no product can be identified, or a search finds nothing relevant, call ask_customer with ONE short question instead.

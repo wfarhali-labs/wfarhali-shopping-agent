@@ -72,6 +72,7 @@ class ShoppingAgent:
             for call in turn.tool_calls:
                 result, step = self._execute(call.name, call.arguments, state)
                 steps.append(step)
+                steps.extend(state.pop("extra_steps", []))   # searches run on the agent's own initiative
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps(result, ensure_ascii=False)})
                 if call.name == "ask_customer" and step.ok:
                     return TurnResult("question", steps, messages, state["understanding"], question=result)
@@ -100,18 +101,30 @@ class ShoppingAgent:
         understanding = {"items": items, "budget_dzd": int(budget) if budget else None, "wilaya": str(args.get("wilaya") or ""),
                          "summary_darija": str(args.get("summary_darija") or ""), "summary_en": str(args.get("summary_en") or "")}
         state["understanding"] = understanding
-        return {"recorded": True}, understanding
+        # Search the catalogue for every item right away, so the model does not need one round trip per item.
+        searches, extra_steps = [], []
+        for item in items:
+            if not item["search_keywords"].strip():
+                continue
+            result, detail = self._search(item["need"], item["search_keywords"], state)
+            searches.append(result)
+            extra_steps.append(Step("search_catalogue", *STEP_LABELS["search_catalogue"], detail))
+        state["extra_steps"] = extra_steps
+        return {"recorded": True, "searches": searches}, understanding
 
     def _tool_search_catalogue(self, args, state):
         need, query = str(args["need"]), str(args["query"]).strip()
         if not query:
             raise ValueError("empty query")
+        return self._search(need, query, state)
+
+    def _search(self, need: str, query: str, state: dict) -> tuple[dict, dict]:
         found: list[Product] = self.catalogue.search(query)
         for product in found:
             state["products"][product.id] = product
         public = [p.public() for p in found]
-        return {"need": need, "products": public}, {"need": need, "query": query, "count": len(found),
-                                                     "thumbnails": [p["image_url"] for p in public[:3] if p["image_url"]]}
+        return {"need": need, "query": query, "products": public}, {"need": need, "query": query, "count": len(found),
+                                                                     "thumbnails": [p["image_url"] for p in public[:3] if p["image_url"]]}
 
     def _tool_plan_basket(self, args, state):
         needs = {}

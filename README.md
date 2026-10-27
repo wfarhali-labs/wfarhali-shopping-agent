@@ -25,10 +25,11 @@ customer: text / voice / photo (Darija, Arabic, French)
         │
         ▼
 Muse Voice Transcribe ─► Muse Spark (tool calling, sees photos)
-                              │ 1. record_understanding  products, sizes, colours, budget, wilaya
-                              │ 2. search_catalogue      one search per product (French keywords)
-                              │ 3. plan_basket           exact budget arithmetic (planner.py)
-                              │ 4. propose_basket  or  ask_customer
+                              │ 1. record_understanding  products, sizes, colours, budget, wilaya;
+                              │                          the agent searches the catalogue for each item at once
+                              │    (search_catalogue      only to retry a need with other French keywords)
+                              │ 2. plan_basket           exact budget arithmetic (planner.py)
+                              │ 3. propose_basket  or  ask_customer
                               ▼
         web app: transparent steps ─► proposal ─► customer confirms
 ```
@@ -37,6 +38,7 @@ Design choices:
 - **The model decides, tools compute.** Muse Spark chooses what to search and which products are relevant; prices come only from tool results and totals from the planner, so the agent never invents a number.
 - **Honest over budget.** When nothing fits, the agent shows the cheapest basket and by how much it is over.
 - **One clarifying question** when the request is not actionable, then it continues with the whole conversation.
+- **Few model calls.** The catalogue searches run inside the understanding step, so a request needs three model calls (understand, plan, propose) whatever the number of products; the conversation is prompt-cached.
 - **Human in the loop.** Nothing is ordered without the customer's confirmation; Wfarhali's team confirms the final price.
 
 ## Meta models
