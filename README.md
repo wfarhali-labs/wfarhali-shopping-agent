@@ -43,7 +43,7 @@ Design choices:
 
 | Model | Use | Status |
 |---|---|---|
-| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live request verified (Oct 27)**: one Darija request with the agent's tools returned a correct `record_understanding` tool call (1,643 prompt + 313 completion tokens, 102 of them reasoning); full multi-step loop and photos not yet run live |
+| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live loop verified (Oct 27)**: a Darija request ran through the full loop (understand → search → plan → propose) in 4 model calls, about 9,000 tokens in total with prompt caching; photos not yet run live |
 | **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | client written and unit-tested against the documented API shape; live run not yet done |
 | SAM 3.1 | product cut-out from photos | planned |
 
