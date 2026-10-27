@@ -43,3 +43,27 @@ def test_photo_turn_and_input_guards():
     assert client.post("/api/turn", files={"image": ("p.txt", b"hello", "text/plain")}).status_code == 415
     assert client.post("/api/turn", files={"image": ("p.png", io.BytesIO(b"0" * (webapp.MAX_IMAGE_BYTES + 1)), "image/png")}).status_code == 413
     assert client.post("/api/turn", data={"text": "  "}).status_code == 422
+
+
+def test_voice_empty_transcript_and_silence_guard(monkeypatch):
+    class Silent:
+        name = "mock"
+
+        def transcribe(self, wav):
+            return ""
+    monkeypatch.setattr(webapp, "transcriber", Silent())
+    empty = client.post("/api/turn", files={"audio": ("voice.wav", _wav(), "audio/wav")})
+    assert empty.status_code == 422 and "nothing understood" in empty.json()["error"]
+    # the Meta client refuses a silent recording before spending anything
+    import httpx
+    from agent.speech import MetaTranscriber, SpeechError, wav_stats
+    silent = _wav(seconds=1.0)
+    assert wav_stats(silent) == {"seconds": 1.0, "peak": 0.0, "rate": 24000, "channels": 1}
+    class NeverCalled(httpx.Client):
+        def post(self, *a, **k):
+            raise AssertionError("must not call the API for silence")
+    try:
+        MetaTranscriber(api_key="k", client=NeverCalled()).transcribe(silent)
+        assert False, "expected SpeechError"
+    except SpeechError as exc:
+        assert "silent" in str(exc)

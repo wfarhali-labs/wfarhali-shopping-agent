@@ -5,6 +5,7 @@ Run:  uvicorn web.app:app --port 8000   (reads .env when present)
 from __future__ import annotations
 
 import base64
+import logging
 import os
 import secrets
 import time
@@ -40,6 +41,8 @@ def _load_dotenv(path: Path) -> None:
 
 _load_dotenv(ROOT.parent / ".env")
 settings = Settings.from_env()
+DEBUG_AUDIO_FILE = ROOT.parent / "last_voice.wav" if os.environ.get("WFAGENT_DEBUG_AUDIO", "").strip() == "1" else None
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 agent = ShoppingAgent(llm_module.from_settings(settings), catalogue_module.from_settings(settings), settings.max_steps)
 transcriber = speech_module.from_settings(settings)
 sessions: "OrderedDict[str, tuple[float, list[dict]]]" = OrderedDict()   # in memory: a demo, not a shop backend
@@ -80,10 +83,14 @@ async def turn(text: str = Form(""), session_id: str = Form(""), audio: UploadFi
     transcript = ""
     if audio is not None:
         wav = await audio.read()
+        if DEBUG_AUDIO_FILE:                                 # WFAGENT_DEBUG_AUDIO=1: keep the last recording to listen to it
+            DEBUG_AUDIO_FILE.write_bytes(wav)
         try:
             transcript = transcriber.transcribe(wav)
         except speech_module.SpeechError as exc:
             return JSONResponse({"status": "error", "error": f"voice: {exc}"}, status_code=422)
+        if not transcript and not text:
+            return JSONResponse({"status": "error", "error": "voice: nothing understood in the recording"}, status_code=422)
         text = (transcript + " " + text).strip()
     image_url = None
     if image is not None:

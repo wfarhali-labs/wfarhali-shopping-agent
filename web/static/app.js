@@ -110,7 +110,11 @@
       if (data.status === 'question') renderQuestion(data.question);
       if (data.status === 'proposal') renderProposal(data.proposal);
     } catch (error) {
-      $('ol', box).replaceChildren(bilingual('ما قدرتش نكمّل، عاود جرّب.', String(error.message || error), 'li'));
+      const msg = String(error.message || error);
+      const darija = msg.includes('silent recording') ? 'التسجيل فارغ: الميكروفون ما سجّل والو. شوفي إذن الميكروفون وعاودي.'
+        : msg.includes('nothing understood') ? 'ما فهمتش كلام في التسجيل. عاودي قريب من الميكروفون وبصوت واضح.'
+        : 'ما قدرتش نكمّل، عاود جرّب.';
+      $('ol', box).replaceChildren(bilingual(darija, msg, 'li'));
       $('ol', box).firstChild.className = 'fail';
     } finally { busy = false; scroll(); }
   }
