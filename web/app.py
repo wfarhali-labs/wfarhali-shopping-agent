@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 from agent import catalogue as catalogue_module
 from agent import llm as llm_module
+from agent import segment as segment_module
 from agent import speech as speech_module
 from agent.agent import ShoppingAgent
 from agent.config import Settings
@@ -43,7 +44,8 @@ _load_dotenv(ROOT.parent / ".env")
 settings = Settings.from_env()
 DEBUG_AUDIO_FILE = ROOT.parent / "last_voice.wav" if os.environ.get("WFAGENT_DEBUG_AUDIO", "").strip() == "1" else None
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-agent = ShoppingAgent(llm_module.from_settings(settings), catalogue_module.from_settings(settings), settings.max_steps)
+agent = ShoppingAgent(llm_module.from_settings(settings), catalogue_module.from_settings(settings), settings.max_steps,
+                      segmenter=segment_module.from_settings(settings))
 transcriber = speech_module.from_settings(settings)
 sessions: "OrderedDict[str, tuple[float, list[dict], dict]]" = OrderedDict()   # in memory (seen, messages, products): a demo, not a shop backend
 
@@ -58,7 +60,8 @@ def index():
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "model": agent.model.name, "catalogue": agent.catalogue.name, "speech": transcriber.name}
+    return {"ok": True, "model": agent.model.name, "catalogue": agent.catalogue.name, "speech": transcriber.name,
+            "segment": agent.segmenter.name if agent.segmenter else "off"}
 
 
 def _history(session_id: str) -> tuple[list[dict] | None, dict]:

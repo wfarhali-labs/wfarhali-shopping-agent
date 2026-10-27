@@ -7,10 +7,12 @@ from dataclasses import dataclass, field
 from .catalogue import Catalogue, Product
 from .llm import ChatModel, ModelError, ModelTurn
 from .planner import plan_basket
+from .segment import SegmentError, Segmenter, crop_data_url
 from .tools import SYSTEM_PROMPT, TERMINAL_TOOLS, TOOLS
 
 STEP_LABELS = {  # what the customer sees while the agent works (Darija, English)
     "record_understanding": ("فهمت طلبك", "Understood your request"),
+    "locate_in_photo": ("حدّدت المنتج في الصورة", "Located the item in the photo"),
     "search_catalogue": ("يبحث في متاجر العالم", "Searching world stores"),
     "plan_basket": ("يخطط في حدود الميزانية", "Planning within budget"),
     "ask_customer": ("عندي سؤال", "One question"),
@@ -44,8 +46,8 @@ class TurnResult:
 
 
 class ShoppingAgent:
-    def __init__(self, model: ChatModel, catalogue: Catalogue, max_steps: int = 10):
-        self.model, self.catalogue, self.max_steps = model, catalogue, max_steps
+    def __init__(self, model: ChatModel, catalogue: Catalogue, max_steps: int = 10, segmenter: Segmenter | None = None):
+        self.model, self.catalogue, self.max_steps, self.segmenter = model, catalogue, max_steps, segmenter
 
     @staticmethod
     def user_message(text: str = "", image_data_url: str | None = None) -> dict:
@@ -61,7 +63,7 @@ class ShoppingAgent:
         messages = list(history or []) or [{"role": "developer", "content": SYSTEM_PROMPT}]
         messages.append(self.user_message(text, image_data_url))
         steps: list[Step] = []
-        state = {"products": dict(products or {}), "understanding": None, "plan": None}
+        state = {"products": dict(products or {}), "understanding": None, "plan": None, "photo": image_data_url}
 
         def done(status, **kw):
             return TurnResult(status, steps, messages, state["understanding"], products=state["products"], **kw)
@@ -108,8 +110,11 @@ class ShoppingAgent:
         understanding = {"items": items, "budget_dzd": int(budget) if budget else None, "wilaya": str(args.get("wilaya") or ""),
                          "summary_darija": str(args.get("summary_darija") or ""), "summary_en": str(args.get("summary_en") or "")}
         state["understanding"] = understanding
+        extra_steps = []
+        # With a photo: ask SAM 3.1 where each item is, to check the model's reading and show the customer the cut-out.
+        photo_check = self._locate_items(items, state, extra_steps) if state.get("photo") and self.segmenter else None
         # Search the catalogue for every item right away, so the model does not need one round trip per item.
-        searches, extra_steps = [], []
+        searches = []
         for item in items:
             if not item["search_keywords"].strip():
                 continue
@@ -117,7 +122,27 @@ class ShoppingAgent:
             searches.append(result)
             extra_steps.append(Step("search_catalogue", *STEP_LABELS["search_catalogue"], detail))
         state["extra_steps"] = extra_steps
-        return {"recorded": True, "searches": searches}, understanding
+        result = {"recorded": True, "searches": searches}
+        if photo_check is not None:
+            result["photo"] = photo_check
+        state["photo"] = None                                 # one check per photo
+        return result, understanding
+
+    def _locate_items(self, items: list[dict], state: dict, extra_steps: list) -> dict:
+        """SAM 3.1 per item: number of matches in the photo (for the model) and the cut-outs (for the customer)."""
+        report = {}
+        for item in items:
+            concept = item["need"]
+            try:
+                boxes = self.segmenter.locate(state["photo"], concept)
+            except SegmentError as exc:
+                extra_steps.append(Step("locate_in_photo", *STEP_LABELS["locate_in_photo"], {"need": concept, "error": str(exc)}, ok=False))
+                continue
+            crops = [c for c in (crop_data_url(state["photo"], box) for box in boxes[:3]) if c]
+            report[concept] = {"matches": len(boxes)}
+            extra_steps.append(Step("locate_in_photo", *STEP_LABELS["locate_in_photo"],
+                                    {"need": concept, "count": len(boxes), "boxes": [b.public() for b in boxes], "thumbnails": crops}))
+        return report
 
     def _tool_search_catalogue(self, args, state):
         need, query = str(args["need"]), str(args["query"]).strip()

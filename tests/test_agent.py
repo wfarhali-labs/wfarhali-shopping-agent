@@ -142,3 +142,28 @@ def test_understanding_searches_at_once_so_the_model_can_plan_directly():
     searches = json.loads(result.messages[3]["content"])["searches"]          # the tool result of record_understanding
     assert [s["need"] for s in searches] == ["white sneakers", "dress"] and all(s["products"] for s in searches)
     assert result.status == "proposal" and len(result.proposal["items"]) == 2
+
+
+def _png_data_url(width=40, height=30):
+    import base64
+    import io
+    from PIL import Image
+    out = io.BytesIO()
+    Image.new("RGB", (width, height), (200, 30, 30)).save(out, format="PNG")
+    return "data:image/png;base64," + base64.b64encode(out.getvalue()).decode()
+
+
+def test_photo_items_are_located_with_the_segmenter_and_cut_out():
+    from agent.segment import MockSegmenter, parse_boxes
+    boxes = parse_boxes("<0f>0<|box;x1=251;y1=70;x2=923;y2=853;w=1280;h=854|><|mask;x=0;y=0;data=784,673,abc|>,1<|box;x1=5;y1=6;x2=7;y2=8;w=1280;h=854|>")
+    assert [(b.x1, b.y1, b.x2, b.y2) for b in boxes] == [(251, 70, 923, 853), (5, 6, 7, 8)] and boxes[0].width == 1280
+    result = ShoppingAgent(MockChatModel(), DemoCatalogue(), segmenter=MockSegmenter()).run(None, "صباط أبيض مقاس 40", image_data_url=_png_data_url())
+    assert result.status == "proposal"
+    located = [s for s in result.steps if s.tool == "locate_in_photo"]
+    assert len(located) == 1 and located[0].detail["count"] == 1 and located[0].detail["thumbnails"][0].startswith("data:image/jpeg;base64,")
+    assert [s.tool for s in result.steps][:3] == ["record_understanding", "locate_in_photo", "search_catalogue"]
+    tool_result = json.loads(result.messages[3]["content"])
+    assert tool_result["photo"] == {"white sneakers": {"matches": 1}}
+    # without a photo, no segmentation step and no "photo" key
+    plain = ShoppingAgent(MockChatModel(), DemoCatalogue(), segmenter=MockSegmenter()).run(None, "صباط أبيض مقاس 40")
+    assert not [s for s in plain.steps if s.tool == "locate_in_photo"] and "photo" not in json.loads(plain.messages[3]["content"])

@@ -14,6 +14,7 @@ class Settings:
     catalogue: str = "demo"                # demo | wfarhali
     wfarhali_base_url: str = "https://wfarhali.com"
     stt: str = "mock"                      # mock | meta
+    segment: str = "mock"                  # mock | meta  (SAM 3.1: locate the product in the customer's photo)
     max_steps: int = 10
 
     @classmethod
@@ -27,5 +28,6 @@ class Settings:
             catalogue=env("WFAGENT_CATALOGUE", "demo").strip().lower() or "demo",
             wfarhali_base_url=env("WFARHALI_BASE_URL", "https://wfarhali.com").strip().rstrip("/"),
             stt=env("WFAGENT_STT", "mock").strip().lower() or "mock",
+            segment=env("WFAGENT_SEGMENT", "mock").strip().lower() or "mock",
             max_steps=int(env("WFAGENT_MAX_STEPS", "10") or 10),
         )

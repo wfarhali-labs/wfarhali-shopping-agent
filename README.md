@@ -12,7 +12,7 @@ Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), t
 |---|---|
 | **Wfarhali** ([wfarhali.com](https://wfarhali.com)), a live service: customers in Algeria order products from international stores, Wfarhali verifies, prices in DZD, pays and delivers. | The **agent**: a tool-calling loop driven by Meta's Muse Spark (`agent/agent.py`, `agent/tools.py`). |
 | Its product search endpoint `/api/live-search`, which returns, for each product, an **estimated total in DZD** computed by Wfarhali's own pricing system (closed source). | The **budget planner** (`agent/planner.py`): exact arithmetic to fit one product per need into the budget. |
-| | The **multimodal input**: voice recorded and converted to WAV in the browser for Muse Voice Transcribe, photos sent to Muse Spark (`agent/speech.py`, `web/`). |
+| | The **multimodal input**: voice recorded and converted to WAV in the browser for Muse Voice Transcribe, photos sent to Muse Spark, the item located in the photo with SAM 3.1 (`agent/speech.py`, `agent/segment.py`, `web/`). |
 | | The **web app** (`web/`): every agent step shown to the customer, in Darija with an English line. |
 | | An **offline mock model** (`agent/mock_llm.py`, `agent/darija.py`) and a synthetic demo catalogue, so everything runs and is tested without any API key. |
 
@@ -26,6 +26,7 @@ customer: text / voice / photo (Darija, Arabic, French)
         ▼
 Muse Voice Transcribe ─► Muse Spark (tool calling, sees photos)
                               │ 1. record_understanding  products, sizes, colours, budget, wilaya;
+                              │                          with a photo: SAM 3.1 locates each item (check + cut-out);
                               │                          the agent searches the catalogue for each item at once
                               │    (search_catalogue      only to retry a need with other French keywords)
                               │ 2. plan_basket           exact budget arithmetic (planner.py)
@@ -49,7 +50,7 @@ Design choices:
 |---|---|---|
 | **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live verified (Oct 27)**: Darija requests run through the full loop (understand + search → plan → propose) in 3 model calls, including against the live Wfarhali catalogue, with centime budgets and the swap flow; photos not yet run live |
 | **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | endpoint and response shape verified live (Oct 27); transcription of real Darija speech not yet verified (first browser test returned an empty transcript, diagnostics added) |
-| SAM 3.1 | product cut-out from photos | planned |
+| **SAM 3.1** (`sam-3.1`, Responses API) | locating the item in the customer's photo: Muse Spark names what it sees, SAM 3.1 is asked for that noun phrase; 0 matches = re-read or ask, 2+ = ask which one, 1 = the cut-out is shown to the customer | integrated and verified live (Oct 27) on a sample photo; behaviour on real product photos to be checked |
 
 ## Run it
 
@@ -65,6 +66,7 @@ To use Meta's models and the live Wfarhali catalogue, set in `.env`:
 ```
 WFAGENT_LLM=meta
 WFAGENT_STT=meta
+WFAGENT_SEGMENT=meta
 MODEL_API_KEY=...            # Meta Model API key (never commit it)
 WFAGENT_CATALOGUE=wfarhali
 ```
@@ -78,6 +80,7 @@ agent/llm.py         Muse Spark client (Meta Model API) and the model interface
 agent/mock_llm.py    offline stand-in model; agent/darija.py its small Darija reader
 agent/planner.py     budget planner
 agent/catalogue.py   Wfarhali search API client + offline demo catalogue
+agent/segment.py     SAM 3.1 client (boxes from the special-token output), cut-outs, offline mock
 agent/speech.py      Muse Voice Transcribe client + offline mock
 web/                 FastAPI app and the single-page UI
 tests/               pytest suite

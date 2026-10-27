@@ -38,6 +38,10 @@
       let ar = s.label_darija, en = s.label_en;
       if (s.tool === 'record_understanding' && d.summary_darija) { ar = `فهمت: ${d.summary_darija}`; en = `Understood: ${d.summary_en}`; }
       if (s.tool === 'search_catalogue' && d.query) { ar = `${s.label_darija}: ${d.need} — ${d.count} منتج`; en = `${s.label_en}: “${d.query}” — ${d.count} products`; }
+      if (s.tool === 'locate_in_photo' && d.count != null) {
+        ar = d.count === 1 ? `${s.label_darija}: ${d.need} — هذا هو لي فهمت` : d.count === 0 ? `ما لقيتش «${d.need}» في الصورة` : `لقيت ${d.count} «${d.need}» في الصورة`;
+        en = `${s.label_en}: “${d.need}” — ${d.count} match${d.count === 1 ? '' : 'es'}`;
+      }
       if (s.tool === 'plan_basket' && d.total_dzd != null) { ar = `${s.label_darija}: ${dzd(d.total_dzd)}`; en = `${s.label_en}: ${d.within_budget ? 'fits' : 'over by ' + d.over_by_dzd + ' DZD'}`; }
       if (!s.ok) { en = `${s.label_en} — retried`; }
       const body = el('div'); body.append(bilingual(ar, en, 'span'));
