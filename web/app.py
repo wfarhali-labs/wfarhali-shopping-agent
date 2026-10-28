@@ -103,8 +103,13 @@ def selftest(request: Request):
             egress = httpx.get("https://api.ipify.org", timeout=10).text.strip()[:45]
         except Exception:
             egress = "unknown"
+        try:                                                   # which models Meta offers to this server (depends on where it runs)
+            listing = httpx.get(f"{settings.meta_base_url}/models", timeout=30, headers={"Authorization": f"Bearer {settings.model_api_key}"})
+            models = sorted(m.get("id", "") for m in listing.json().get("data", [])) if listing.status_code == 200 else f"HTTP {listing.status_code}"
+        except Exception as exc:
+            models = f"{type(exc).__name__}"
         return {"model": settings.model, "base_url": settings.meta_base_url, "http_status": r.status_code,
-                "request_id": r.headers.get("x-request-id"), "body": r.text[:400], "egress_ip": egress}
+                "request_id": r.headers.get("x-request-id"), "body": r.text[:400], "egress_ip": egress, "models_visible": models}
     except Exception as exc:                                   # network failure: show it instead of a 500
         return {"model": settings.model, "base_url": settings.meta_base_url, "error": f"{type(exc).__name__}: {exc}"[:300]}
 

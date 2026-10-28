@@ -4,6 +4,7 @@ services:
     name: wfarhali-agent
     runtime: python
     plan: free
+    region: virginia      # Meta Model API offers different models depending on where the request comes from; Oregon saw no Muse Spark
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn web.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
