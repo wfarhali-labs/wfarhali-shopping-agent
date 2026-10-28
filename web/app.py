@@ -89,6 +89,22 @@ def health():
             "key_format_ok": settings.model_api_key.startswith("LLM_") and len(settings.model_api_key) == 48}
 
 
+@app.get("/api/selftest")
+def selftest(request: Request):
+    """One tiny real call to the configured model from this server, to diagnose a deployment (costs a fraction of a cent)."""
+    if not _allow_turn(_client_ip(request)):
+        return JSONResponse({"error": "too many requests"}, status_code=429)
+    import httpx
+    body = {"model": settings.model, "messages": [{"role": "user", "content": "Say OK"}], "max_completion_tokens": 20, "reasoning_effort": "low"}
+    try:
+        r = httpx.post(f"{settings.meta_base_url}/chat/completions", json=body, timeout=60,
+                       headers={"Authorization": f"Bearer {settings.model_api_key}"})
+        return {"model": settings.model, "base_url": settings.meta_base_url, "http_status": r.status_code,
+                "request_id": r.headers.get("x-request-id"), "body": r.text[:400]}
+    except Exception as exc:                                   # network failure: show it instead of a 500
+        return {"model": settings.model, "base_url": settings.meta_base_url, "error": f"{type(exc).__name__}: {exc}"[:300]}
+
+
 def _history(session_id: str) -> tuple[list[dict] | None, dict]:
     now = time.time()
     for key in [k for k, (seen, _, _) in sessions.items() if now - seen > SESSION_TTL]:
