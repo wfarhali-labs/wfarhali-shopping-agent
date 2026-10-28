@@ -18,7 +18,8 @@ def _wav(seconds=0.2, rate=24000):
 def test_page_and_health():
     assert "واش حاب تشري اليوم" in client.get("/").text
     health = client.get("/api/health").json()
-    assert health == {"ok": True, "model": "mock", "catalogue": "demo", "speech": "mock", "segment": "mock", "whatsapp": health["whatsapp"]}
+    assert {k: health[k] for k in ("ok", "model", "catalogue", "speech", "segment")} == {"ok": True, "model": "mock", "catalogue": "demo", "speech": "mock", "segment": "mock"}
+    assert health["model_id"] == "muse-spark-1.3" and health["base_url"].startswith("https://") and "key_set" in health
     assert health["whatsapp"].isdigit() or health["whatsapp"] == ""
     assert client.get("/static/app.js").status_code == 200
 
