@@ -99,8 +99,12 @@ def selftest(request: Request):
     try:
         r = httpx.post(f"{settings.meta_base_url}/chat/completions", json=body, timeout=60,
                        headers={"Authorization": f"Bearer {settings.model_api_key}"})
+        try:
+            egress = httpx.get("https://api.ipify.org", timeout=10).text.strip()[:45]
+        except Exception:
+            egress = "unknown"
         return {"model": settings.model, "base_url": settings.meta_base_url, "http_status": r.status_code,
-                "request_id": r.headers.get("x-request-id"), "body": r.text[:400]}
+                "request_id": r.headers.get("x-request-id"), "body": r.text[:400], "egress_ip": egress}
     except Exception as exc:                                   # network failure: show it instead of a 500
         return {"model": settings.model, "base_url": settings.meta_base_url, "error": f"{type(exc).__name__}: {exc}"[:300]}
 
