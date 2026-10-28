@@ -7,9 +7,24 @@
   const photoInput = $('#photoInput'), photoChip = $('#photoChip'), mic = $('#micBtn');
   const EMOJI = { shoes: '👟', fashion: '👗', bag: '👜', jewelry: '⌚', beauty: '🧴', electronics: '🎧' };
   const dzd = (n) => `≈ ${new Intl.NumberFormat('fr-FR').format(n)} دج`;
-  let sessionId = '', photo = null, busy = false;
+  let sessionId = '', photo = null, busy = false, whatsapp = '', understanding = null;
 
-  fetch('/api/health').then((r) => r.json()).then((h) => { $('#mode').textContent = `${h.model} · ${h.catalogue} · ${h.speech}`; }).catch(() => {});
+  fetch('/api/health').then((r) => r.json()).then((h) => { whatsapp = h.whatsapp || ''; $('#mode').textContent = `${h.model} · ${h.catalogue} · ${h.speech}`; }).catch(() => {});
+
+  // The confirmed basket goes to Wfarhali's team as a WhatsApp message the customer sends themself (nothing touches the website).
+  function whatsappMessage(p) {
+    const lines = ['سلام وفرهالي 👋 حاب نأكد طلب السعر لهذه السلة (من وكيل وفرهالي):'];
+    p.items.forEach((item, i) => {
+      lines.push(`${i + 1}. ${item.title} — ${item.store || ''} — ${item.price_dzd ? '≈ ' + item.price_dzd + ' دج' : 'السعر يتأكد'}`);
+      if (item.product_url) lines.push(item.product_url);
+    });
+    lines.push(`المجموع التقديري: ${p.total_dzd} دج${p.budget_dzd ? ' / ميزانيتي: ' + p.budget_dzd + ' دج' : ''}`);
+    const u = understanding || {};
+    if (u.wilaya) lines.push(`الولاية: ${u.wilaya}`);
+    const sizes = (u.items || []).filter((it) => it.size || it.color).map((it) => `${it.need}: ${[it.size && 'مقاس ' + it.size, it.color].filter(Boolean).join(', ')}`);
+    if (sizes.length) lines.push(`التفاصيل: ${sizes.join(' | ')}`);
+    return lines.join('\n');
+  }
 
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   const bilingual = (ar, en, cls = 'p') => { const p = el(cls); p.append(document.createTextNode(ar || '')); if (en) p.append(el('span', 'en', en)); return p; };
@@ -90,8 +105,17 @@
     confirm.addEventListener('click', () => {
       confirm.disabled = true;
       const done = el('div', 'msg agent');
-      done.append(bilingual('تمام! (عرض تجريبي: ما تبعث حتى طلب). في النسخة الكاملة يوصل الطلب لفريق وفّرهالي ويأكد السعر خلال 30 دقيقة.',
-        'Done! (Demo: nothing was sent.) In the full version the request reaches Wfarhali’s team, who confirm the price within 30 minutes.'));
+      if (whatsapp) {
+        const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(whatsappMessage(p))}`;
+        window.open(url, '_blank', 'noopener');
+        done.append(bilingual('فتحت لك واتساب وفّرهالي والرسالة جاهزة فيها السلة. ابعثها، وفريقنا يأكد لك السعر النهائي.',
+          'WhatsApp is open with your basket ready to send. Wfarhali’s team confirms the final price.'));
+        const again = el('a', 'en', 'إذا ما تفتحش واتساب، اضغط هنا · Open WhatsApp'); again.href = url; again.target = '_blank'; again.rel = 'noopener';
+        done.append(again);
+      } else {
+        done.append(bilingual('تمام! (عرض تجريبي: ما تبعث حتى طلب). في النسخة الكاملة يوصل الطلب لفريق وفّرهالي ويأكد السعر.',
+          'Done! (Demo: nothing was sent.) In the full version the request reaches Wfarhali’s team, who confirm the price.'));
+      }
       chat.append(done); scroll();
     });
     actions.append(confirm);
@@ -118,6 +142,7 @@
       if (data.transcript) $('p', userBubble).textContent = `🎤 ${data.transcript}`;
       if (!response.ok || data.status === 'error') throw new Error(data.error || data.detail || response.statusText);
       sessionId = data.session_id;
+      if (data.understanding) understanding = data.understanding;
       renderSteps(box, data.steps || []);
       if (data.status === 'question') renderQuestion(data.question);
       if (data.status === 'proposal') renderProposal(data.proposal);

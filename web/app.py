@@ -61,7 +61,7 @@ def index():
 @app.get("/api/health")
 def health():
     return {"ok": True, "model": agent.model.name, "catalogue": agent.catalogue.name, "speech": transcriber.name,
-            "segment": agent.segmenter.name if agent.segmenter else "off"}
+            "segment": agent.segmenter.name if agent.segmenter else "off", "whatsapp": settings.whatsapp}
 
 
 def _history(session_id: str) -> tuple[list[dict] | None, dict]:

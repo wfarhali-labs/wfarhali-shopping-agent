@@ -15,6 +15,7 @@ class Settings:
     wfarhali_base_url: str = "https://wfarhali.com"
     stt: str = "mock"                      # mock | meta
     segment: str = "mock"                  # mock | meta  (SAM 3.1: locate the product in the customer's photo)
+    whatsapp: str = "33688777802"          # Wfarhali's WhatsApp (the wa.me number on wfarhali.com); "" disables the button
     max_steps: int = 10
 
     @classmethod
@@ -29,5 +30,6 @@ class Settings:
             wfarhali_base_url=env("WFARHALI_BASE_URL", "https://wfarhali.com").strip().rstrip("/"),
             stt=env("WFAGENT_STT", "mock").strip().lower() or "mock",
             segment=env("WFAGENT_SEGMENT", "mock").strip().lower() or "mock",
+            whatsapp="".join(ch for ch in env("WFAGENT_WHATSAPP", "33688777802") if ch.isdigit()),
             max_steps=int(env("WFAGENT_MAX_STEPS", "10") or 10),
         )

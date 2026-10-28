@@ -17,7 +17,9 @@ def _wav(seconds=0.2, rate=24000):
 
 def test_page_and_health():
     assert "واش حاب تشري اليوم" in client.get("/").text
-    assert client.get("/api/health").json() == {"ok": True, "model": "mock", "catalogue": "demo", "speech": "mock", "segment": "mock"}
+    health = client.get("/api/health").json()
+    assert health == {"ok": True, "model": "mock", "catalogue": "demo", "speech": "mock", "segment": "mock", "whatsapp": health["whatsapp"]}
+    assert health["whatsapp"].isdigit() or health["whatsapp"] == ""
     assert client.get("/static/app.js").status_code == 200
 
 
