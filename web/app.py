@@ -12,7 +12,7 @@ import time
 from collections import OrderedDict
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -28,6 +28,29 @@ MAX_IMAGE_BYTES = 6 * 1024 * 1024
 IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 SESSION_TTL = 3600
 MAX_SESSIONS = 500
+# Spending guard for a public URL (every turn costs API money): per visitor per hour, and for the whole app per day.
+MAX_TURNS_PER_HOUR_PER_IP = int(os.environ.get("WFAGENT_MAX_TURNS_PER_HOUR_PER_IP", "30") or 30)
+MAX_TURNS_PER_DAY = int(os.environ.get("WFAGENT_MAX_TURNS_PER_DAY", "400") or 400)
+_turns_by_ip: dict[str, list[float]] = {}
+_turns_today: list[float] = []
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    return (forwarded.split(",")[0].strip() if forwarded else None) or (request.client.host if request.client else "?")
+
+
+def _allow_turn(ip: str) -> bool:
+    now = time.time()
+    _turns_today[:] = [t for t in _turns_today if now - t < 86400]
+    recent = _turns_by_ip[ip] = [t for t in _turns_by_ip.get(ip, []) if now - t < 3600]
+    if len(_turns_today) >= MAX_TURNS_PER_DAY or len(recent) >= MAX_TURNS_PER_HOUR_PER_IP:
+        return False
+    recent.append(now)
+    _turns_today.append(now)
+    for key in [k for k, v in _turns_by_ip.items() if not v]:
+        _turns_by_ip.pop(key, None)
+    return True
 
 
 def _load_dotenv(path: Path) -> None:
@@ -80,8 +103,10 @@ def _store(session_id: str, messages: list[dict], products: dict) -> None:
 
 
 @app.post("/api/turn")
-async def turn(text: str = Form(""), session_id: str = Form(""), audio: UploadFile | None = File(None),
+async def turn(request: Request, text: str = Form(""), session_id: str = Form(""), audio: UploadFile | None = File(None),
                image: UploadFile | None = File(None)):
+    if not _allow_turn(_client_ip(request)):
+        return JSONResponse({"status": "error", "error": "too many requests: please try again later"}, status_code=429)
     text = text.strip()[:600]
     transcript = ""
     if audio is not None:

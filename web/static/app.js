@@ -150,6 +150,7 @@
       const msg = String(error.message || error);
       const darija = msg.includes('silent recording') ? 'التسجيل فارغ: الميكروفون ما سجّل والو. شوفي إذن الميكروفون وعاودي.'
         : msg.includes('nothing understood') ? 'ما فهمتش كلام في التسجيل. عاودي قريب من الميكروفون وبصوت واضح.'
+        : msg.includes('too many requests') ? 'بزاف طلبات دروك. عاود جرّب بعد شوية.'
         : 'ما قدرتش نكمّل، عاود جرّب.';
       $('ol', box).replaceChildren(bilingual(darija, msg, 'li'));
       $('ol', box).firstChild.className = 'fail';

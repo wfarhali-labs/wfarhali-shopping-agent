@@ -1,0 +1,27 @@
+# Render blueprint: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: wfarhali-agent
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn web.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: WFAGENT_LLM
+        value: meta
+      - key: WFAGENT_STT
+        value: meta
+      - key: WFAGENT_SEGMENT
+        value: meta
+      - key: WFAGENT_CATALOGUE
+        value: wfarhali
+      - key: WFAGENT_MAX_TURNS_PER_HOUR_PER_IP
+        value: "30"
+      - key: WFAGENT_MAX_TURNS_PER_DAY
+        value: "400"
+      - key: MODEL_API_KEY
+        sync: false          # entered once in the Render dashboard, never in the repository

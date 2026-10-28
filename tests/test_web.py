@@ -69,3 +69,15 @@ def test_voice_empty_transcript_and_silence_guard(monkeypatch):
         assert False, "expected SpeechError"
     except SpeechError as exc:
         assert "silent" in str(exc)
+
+
+def test_public_spending_cap(monkeypatch):
+    monkeypatch.setattr(webapp, "MAX_TURNS_PER_HOUR_PER_IP", 2)
+    monkeypatch.setattr(webapp, "_turns_by_ip", {})
+    monkeypatch.setattr(webapp, "_turns_today", [])
+    assert client.post("/api/turn", data={"text": "عندي عرس"}).status_code == 200
+    assert client.post("/api/turn", data={"text": "عندي عرس"}).status_code == 200
+    third = client.post("/api/turn", data={"text": "عندي عرس"})
+    assert third.status_code == 429 and "too many requests" in third.json()["error"]
+    # the header set by a reverse proxy identifies the visitor
+    assert client.post("/api/turn", data={"text": "عندي عرس"}, headers={"x-forwarded-for": "203.0.113.9"}).status_code == 200

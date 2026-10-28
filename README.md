@@ -71,6 +71,12 @@ MODEL_API_KEY=...            # Meta Model API key (never commit it)
 WFAGENT_CATALOGUE=wfarhali
 ```
 
+## Deploy (Render, free plan)
+
+`render.yaml` describes the service: `pip install -r requirements.txt`, then `uvicorn web.app:app --host 0.0.0.0 --port $PORT`, health check on `/api/health`. In the Render dashboard, create a **Blueprint** from this repository and enter `MODEL_API_KEY` as a secret; the other settings (`WFAGENT_LLM=meta`, `WFAGENT_STT=meta`, `WFAGENT_SEGMENT=meta`, `WFAGENT_CATALOGUE=wfarhali`) are in the file. The free plan sleeps after inactivity and takes about a minute to wake up.
+
+Because every turn costs API money, a public deployment is capped: `WFAGENT_MAX_TURNS_PER_HOUR_PER_IP` (default 30) and `WFAGENT_MAX_TURNS_PER_DAY` (default 400, roughly 4 USD a day at the measured cost). Over the cap, the app answers 429 and the page says to try later.
+
 ## Repository map
 
 ```
