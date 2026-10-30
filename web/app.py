@@ -97,8 +97,12 @@ def selftest(request: Request):
     import httpx
     body = {"model": settings.model, "messages": [{"role": "user", "content": "Say OK"}], "max_completion_tokens": 20, "reasoning_effort": "low"}
     try:
-        r = httpx.post(f"{settings.meta_base_url}/chat/completions", json=body, timeout=60,
-                       headers={"Authorization": f"Bearer {settings.model_api_key}"})
+        tries = max(1, min(5, int(request.query_params.get("n", "1") or 1)))
+        statuses = []
+        for _ in range(tries):                              # several tiny calls show whether a failure is intermittent
+            r = httpx.post(f"{settings.meta_base_url}/chat/completions", json=body, timeout=60,
+                           headers={"Authorization": f"Bearer {settings.model_api_key}"})
+            statuses.append(r.status_code)
         try:
             egress = httpx.get("https://api.ipify.org", timeout=10).text.strip()[:45]
         except Exception:
@@ -108,7 +112,7 @@ def selftest(request: Request):
             models = sorted(m.get("id", "") for m in listing.json().get("data", [])) if listing.status_code == 200 else f"HTTP {listing.status_code}"
         except Exception as exc:
             models = f"{type(exc).__name__}"
-        return {"model": settings.model, "base_url": settings.meta_base_url, "http_status": r.status_code,
+        return {"model": settings.model, "base_url": settings.meta_base_url, "http_status": r.status_code, "statuses": statuses,
                 "request_id": r.headers.get("x-request-id"), "body": r.text[:400], "egress_ip": egress, "models_visible": models}
     except Exception as exc:                                   # network failure: show it instead of a 500
         return {"model": settings.model, "base_url": settings.meta_base_url, "error": f"{type(exc).__name__}: {exc}"[:300]}

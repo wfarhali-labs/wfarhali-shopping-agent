@@ -167,3 +167,20 @@ def test_photo_items_are_located_with_the_segmenter_and_cut_out():
     # without a photo, no segmentation step and no "photo" key
     plain = ShoppingAgent(MockChatModel(), DemoCatalogue(), segmenter=MockSegmenter()).run(None, "صباط أبيض مقاس 40")
     assert not [s for s in plain.steps if s.tool == "locate_in_photo"] and "photo" not in json.loads(plain.messages[3]["content"])
+
+
+def test_meta_client_retries_model_not_found_then_falls_back(monkeypatch):
+    import agent.llm as llm_mod
+    monkeypatch.setattr(llm_mod, "RETRY_DELAYS", (0, 0))
+    calls = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        calls.append(body["model"])
+        if body["model"] == "muse-spark-1.3":
+            return httpx.Response(404, json={"error": {"code": "model_not_found", "message": "The requested model was not found."}})
+        return httpx.Response(200, json={"choices": [{"finish_reason": "stop", "message": {"role": "assistant", "content": "OK", "tool_calls": []}}]})
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    turn = MetaChatModel(api_key="k", client=client).complete([{"role": "user", "content": "hi"}], [])
+    assert turn.content == "OK"
+    assert calls == ["muse-spark-1.3", "muse-spark-1.3", "muse-spark-1.3", "muse-spark-1.2"]   # 1 try + 2 retries, then the fallback

@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from dataclasses import dataclass, field
 from typing import Protocol
 
 import httpx
+
+log = logging.getLogger("wfagent.llm")
+RETRY_DELAYS = (0.5, 1.5, 3.0)        # Meta Model API sometimes answers 404 model_not_found for a model it does serve
 
 
 @dataclass
@@ -55,6 +60,7 @@ class MetaChatModel:
     timeout: float = 60.0
     client: httpx.Client | None = None
     name: str = "meta"
+    fallback_model: str = "muse-spark-1.2"   # used only when the main model keeps answering model_not_found; "" disables
 
     def complete(self, messages: list[dict], tools: list[dict]) -> ModelTurn:
         if not self.api_key:
@@ -64,8 +70,7 @@ class MetaChatModel:
                 "prompt_cache_key": "wfarhali-shopping-agent"}
         client = self.client or httpx.Client(timeout=self.timeout)
         try:
-            response = client.post(f"{self.base_url}/chat/completions", json=body,
-                                   headers={"Authorization": f"Bearer {self.api_key}"})
+            response = self._post(client, body)
         finally:
             if self.client is None:
                 client.close()
@@ -84,6 +89,22 @@ class MetaChatModel:
         if not calls and choice.get("finish_reason") == "length":
             raise ModelError("answer cut off (max_completion_tokens too small for the reasoning)")
         return ModelTurn(content=message.get("content") or "", tool_calls=calls)
+
+
+    def _post(self, client: httpx.Client, body: dict) -> httpx.Response:
+        """POST with retries on the intermittent 404 model_not_found (and 5xx), then once more on the fallback model."""
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        response = client.post(f"{self.base_url}/chat/completions", json=body, headers=headers)
+        for delay in RETRY_DELAYS:
+            if not (response.status_code >= 500 or (response.status_code == 404 and "model_not_found" in response.text)):
+                return response
+            log.warning("Meta Model API %s on %s, retrying in %.1fs", response.status_code, body["model"], delay)
+            time.sleep(delay)
+            response = client.post(f"{self.base_url}/chat/completions", json=body, headers=headers)
+        if response.status_code == 404 and "model_not_found" in response.text and self.fallback_model and self.fallback_model != body["model"]:
+            log.warning("Meta Model API still 404 on %s, trying %s", body["model"], self.fallback_model)
+            response = client.post(f"{self.base_url}/chat/completions", json={**body, "model": self.fallback_model}, headers=headers)
+        return response
 
 
 def from_settings(settings) -> ChatModel:
