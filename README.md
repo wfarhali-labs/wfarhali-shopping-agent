@@ -77,7 +77,7 @@ WFAGENT_CATALOGUE=wfarhali
 
 Because every turn costs API money, a public deployment is capped: `WFAGENT_MAX_TURNS_PER_HOUR_PER_IP` (default 30) and `WFAGENT_MAX_TURNS_PER_DAY` (default 400, roughly 4 USD a day at the measured cost). Over the cap, the app answers 429 and the page says to try later.
 
-Other hosts: `Procfile` (Railway, Heroku-style) and `Dockerfile` (Koyeb, Fly.io, Cloud Run, Hugging Face Spaces) run the same app; set the same environment variables there. Note: Meta Model API offers models according to where the request comes from. From Render's Oregon region, `muse-spark-1.3` was reported as `model_not_found` while the same key worked elsewhere; `/api/selftest` shows the models visible from the server.
+Other hosts: `Procfile` (Railway, Heroku-style) and `Dockerfile` (Koyeb, Fly.io, Cloud Run, Hugging Face Spaces) run the same app; set the same environment variables there. Note: Meta Model API offers models according to where the request comes from. From Render's Oregon region, `muse-spark-1.3` was `model_not_found` while the same key worked elsewhere; the same service in Render's Virginia region works (verified Oct 30). `/api/selftest` shows the models visible from the server.
 
 ## Repository map
 
