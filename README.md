@@ -72,7 +72,7 @@ Things to try (Darija, Arabic or French):
 - `عندي عرس الجمعة` → one clarifying question, then answer `روبة سهرة بـ مليون و200`.
 - Press **بدّل · Swap** on a product → another product for the same need, the rest of the basket unchanged.
 - Send a photo of a product with a word or two → SAM 3.1 locates the item and the cut-out is shown; 0 or several matches make the agent ask.
-- Press the microphone and speak in Darija → Muse Voice Transcribe (needs HTTPS or localhost for the microphone).
+- Press the microphone and speak in Darija, or send a voice-note file (WhatsApp, phone recorder) with the note button → Muse Voice Transcribe (the microphone needs HTTPS or localhost).
 - Press **أكّد · Confirm** → WhatsApp opens with the basket written out for Wfarhali's team.
 
 Without a key, `cp .env.example .env` as is runs everything offline on the mock model and the demo catalogue, and `pytest -q` runs the 25 tests.

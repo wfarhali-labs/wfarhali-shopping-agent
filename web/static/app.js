@@ -185,6 +185,18 @@
     for (let i = 0; i < length; i += 1) { const s = Math.max(-1, Math.min(1, data[Math.floor(i * ratio)])); out.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
     return new Blob([out], { type: 'audio/wav' });
   }
+  // A voice note recorded elsewhere (WhatsApp, the phone's recorder…) is decoded by the browser and sent as the same WAV.
+  const audioInput = $('#audioInput');
+  $('#audioBtn').addEventListener('click', () => audioInput.click());
+  audioInput.addEventListener('change', async () => {
+    const file = audioInput.files[0]; audioInput.value = '';
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) { alert('الملف كبير بزاف (15 MB max)'); return; }
+    try {
+      const decoded = await new AudioContext().decodeAudioData(await file.arrayBuffer());
+      send({ text: input.value.trim(), audio: wav(decoded) });
+    } catch (_) { alert('ما قدرتش نقرا هذا الملف الصوتي / Could not read this audio file'); }
+  });
   mic.addEventListener('click', async () => {
     if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
     try {
