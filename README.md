@@ -52,6 +52,33 @@ Design choices:
 | **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | endpoint and response shape verified live (Oct 27); transcription of real Darija speech not yet verified (first browser test returned an empty transcript, diagnostics added) |
 | **SAM 3.1** (`sam-3.1`, Responses API) | locating the item in the customer's photo: Muse Spark names what it sees, SAM 3.1 is asked for that noun phrase; 0 matches = re-read or ask, 2+ = ask which one, 1 = the cut-out is shown to the customer | integrated and verified live (Oct 27) on a sample photo; behaviour on real product photos to be checked |
 
+## For judges: run it in 3 minutes
+
+```bash
+git clone https://github.com/wfarhali-labs/wfarhali-shopping-agent.git
+cd wfarhali-shopping-agent
+python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+Open `.env` and set `WFAGENT_LLM=meta`, `WFAGENT_STT=meta`, `WFAGENT_SEGMENT=meta`, `WFAGENT_CATALOGUE=wfarhali` and your own Meta Model API key in `MODEL_API_KEY` (no key is in this repository). Then:
+```bash
+uvicorn web.app:app --port 8000        # open http://localhost:8000
+```
+Things to try (Darija, Arabic or French):
+- `حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص، والتوصيل لباتنة` → two real products from Wfarhali's catalogue within 15,000 DZD ("melyoun w nos" is 1.5 million centimes).
+- `نحوس على روبا تاع خرجة بـ 300 ألف` → budget read as 3,000 DZD; nothing fits, so the cheapest dress is proposed with the overrun stated.
+- `صباط بـ 15 ألف` → the amount is ambiguous (150 DZD?), the agent asks which one you meant.
+- `عندي عرس الجمعة` → one clarifying question, then answer `روبة سهرة بـ مليون و200`.
+- Press **بدّل · Swap** on a product → another product for the same need, the rest of the basket unchanged.
+- Send a photo of a product with a word or two → SAM 3.1 locates the item and the cut-out is shown; 0 or several matches make the agent ask.
+- Press the microphone and speak in Darija → Muse Voice Transcribe (needs HTTPS or localhost for the microphone).
+- Press **أكّد · Confirm** → WhatsApp opens with the basket written out for Wfarhali's team.
+
+Without a key, `cp .env.example .env` as is runs everything offline on the mock model and the demo catalogue, and `pytest -q` runs the 25 tests.
+
+**Hosting note.** Meta Model API applies a [geographic use policy](https://dev.meta.ai/legal/geographic-use-policy) to the server's outbound IP: from some cloud hosts (observed on Render) the API answers `404 model_not_found` and an empty model list while the same key works from a laptop. Run locally, or check `/api/selftest?n=5` on a host before relying on it.
+
 ## Run it
 
 ```bash
@@ -71,7 +98,7 @@ MODEL_API_KEY=...            # Meta Model API key (never commit it)
 WFAGENT_CATALOGUE=wfarhali
 ```
 
-## Deploy (Render, free plan)
+## Deploy (optional)
 
 `render.yaml` describes the service: `pip install -r requirements.txt`, then `uvicorn web.app:app --host 0.0.0.0 --port $PORT`, health check on `/api/health`. In the Render dashboard, create a **Blueprint** from this repository and enter `MODEL_API_KEY` as a secret; the other settings (`WFAGENT_LLM=meta`, `WFAGENT_STT=meta`, `WFAGENT_SEGMENT=meta`, `WFAGENT_CATALOGUE=wfarhali`) are in the file. The free plan sleeps after inactivity and takes about a minute to wake up.
 
