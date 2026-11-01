@@ -4,12 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wfarhali Agent</title>
+<link rel="icon" href="/static/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="brand-mark">W</span><span><b>wfarhali</b><small>Agent</small></span></div>
-  <span class="mode" id="mode" title="model / catalogue"></span>
+  <div class="brand"><img class="logo" src="/static/logo.png" alt="wfarhali"><span class="agent-tag">Agent</span></div>
+  <div class="top-right">
+    <span class="mode" id="mode" title="model / catalogue"></span>
+    <button type="button" class="newchat" id="newChat" title="Start over">طلب جديد ↺</button>
+  </div>
 </header>
 
 <main class="chat" id="chat" aria-live="polite">
@@ -37,7 +43,7 @@
   </div>
 </form>
 
-<template id="tplUser"><div class="msg user"><img class="msg-photo" alt="" hidden><p></p></div></template>
+<template id="tplUser"><div class="msg user"><img class="msg-photo" alt="" hidden><p></p><button type="button" class="edit" title="Edit">عدّل ✎</button></div></template>
 <template id="tplSteps"><div class="msg agent steps"><p class="title">الوكيل يخدم على طلبك <span class="en">The agent is working on your request</span></p><ol></ol></div></template>
 <template id="tplCard"><article class="card"><div class="media"></div><div class="body"><p class="need"></p><h3></h3><p class="store"></p><p class="price"></p></div></article></template>
 

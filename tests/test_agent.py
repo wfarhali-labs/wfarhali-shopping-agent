@@ -46,7 +46,7 @@ def test_over_budget_is_said_honestly():
 
 def test_unclear_request_gets_one_question_then_continues():
     first = agent().run(None, "سلام، عندي عرس الجمعة")
-    assert first.status == "question" and first.question["question_en"]
+    assert first.status == "question" and first.question["question_en"] and len(first.question["options"]) == 3
     second = agent().run(first.messages, "روبة سهرة بـ مليون و200", products=first.products)
     assert second.status == "proposal" and second.proposal["items"][0]["need"] == "dress"
 

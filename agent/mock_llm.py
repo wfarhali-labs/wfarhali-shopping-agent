@@ -66,9 +66,10 @@ class MockChatModel:
             if not request.items:
                 if photo:
                     return call("ask_customer", question_darija="شفت الصورة! واش هو المنتج اللي حاب نلقالك؟ مثلا: صباط أبيض مقاس 40",
-                                question_en="I got the photo! Which product should I find? e.g. white sneakers size 40")
+                                question_en="I got the photo! Which product should I find? e.g. white sneakers size 40", options=[])
                 return call("ask_customer", question_darija="واش حاب تشري؟ قولّي المنتج، المقاس والميزانية.",
-                            question_en="What would you like to buy? Tell me the product, size and budget.")
+                            question_en="What would you like to buy? Tell me the product, size and budget.",
+                            options=["روبة سهرة بـ مليون و200", "صباط أبيض مقاس 40", "ساك لمرا أسود"])
             summary_darija, summary_en = request.summaries()
             return call("record_understanding",
                         items=[{"need": i.need, "search_keywords": i.search_keywords, "size": i.size, "color": i.color} for i in request.items],
@@ -82,7 +83,7 @@ class MockChatModel:
                 found = search.get("products", [])
                 if not found:
                     return call("ask_customer", question_darija=f"ما لقيتش «{search['query']}». تقدر توصفلي المنتج بطريقة أخرى؟",
-                                question_en=f"I found nothing for '{search['query']}'. Could you describe it differently?")
+                                question_en=f"I found nothing for '{search['query']}'. Could you describe it differently?", options=[])
                 needs.append({"need": search["need"], "candidate_ids": [p["id"] for p in found if p["id"] not in rejected]})
             return call("plan_basket", budget_dzd=understanding.get("budget_dzd"), needs=needs, exclude_ids=sorted(rejected))
         plan = next(results[cid] for cid, (name, _) in calls.items() if name == "plan_basket")

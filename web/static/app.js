@@ -35,13 +35,37 @@
     const node = $('#tplUser').content.firstElementChild.cloneNode(true);
     $('p', node).textContent = text || '📷';
     if (photoUrl) { const img = $('img', node); img.src = photoUrl; img.hidden = false; }
+    chat.querySelectorAll('.msg.user .edit').forEach((b) => b.remove());          // only the last message can be edited
+    const edit = $('.edit', node);
+    if (text && !text.startsWith('🎤') && !text.startsWith('بدّل')) {
+      edit.addEventListener('click', () => { input.value = text; input.focus(); });
+    } else { edit.remove(); }
     chat.append(node); scroll();
   }
 
+  // "Start over": a new conversation, nothing of the old one is kept on the server side either (new session id).
+  $('#newChat').addEventListener('click', () => {
+    sessionId = ''; understanding = null; clearPhoto(); input.value = '';
+    chat.replaceChildren(helloNode.cloneNode(true));
+    chat.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => send({ text: b.dataset.example })));
+    input.focus();
+  });
+  const helloNode = $('#hello').cloneNode(true);
+
+  const HINTS = [['…يفهم طلبك', 'understanding…'], ['…يبحث في متاجر العالم (ياخذ ثواني)', 'searching world stores (takes a few seconds)…'],
+                 ['…يحسب السلة في حدود الميزانية', 'planning within budget…'], ['…يحضّر الاقتراح', 'preparing the proposal…']];
   function stepsBox() {
     const node = $('#tplSteps').content.firstElementChild.cloneNode(true);
-    const li = el('li', 'busy'); li.append(bilingual('…يفكّر', 'thinking…', 'span'));
+    const li = el('li', 'busy'); li.append(bilingual(HINTS[0][0], HINTS[0][1], 'span'));
+    const clock = el('span', 'clock', '0 ث'); li.append(clock);
     $('ol', node).append(li); chat.append(node); scroll();
+    const started = Date.now();
+    node._timer = setInterval(() => {                       // live feedback while the agent works
+      const s = Math.round((Date.now() - started) / 1000);
+      clock.textContent = `${s} ث · ${s}s`;
+      const hint = HINTS[Math.min(HINTS.length - 1, Math.floor(s / 4))];
+      li.firstChild.replaceWith(bilingual(hint[0], hint[1], 'span'));
+    }, 1000);
     return node;
   }
 
@@ -67,6 +91,15 @@
 
   function renderQuestion(q) {
     const node = el('div', 'msg agent'); node.append(bilingual(q.question_darija, q.question_en));
+    if (q.options?.length) {                                   // tap an answer instead of typing it
+      const row = el('div', 'options');
+      q.options.forEach((o) => {
+        const b = el('button', 'option', o); b.type = 'button';
+        b.addEventListener('click', () => { row.querySelectorAll('button').forEach((x) => { x.disabled = true; }); send({ text: o }); });
+        row.append(b);
+      });
+      node.append(row);
+    }
     chat.append(node); scroll(); input.focus();
   }
 
@@ -154,7 +187,7 @@
         : 'ما قدرتش نكمّل، عاود جرّب.';
       $('ol', box).replaceChildren(bilingual(darija, msg, 'li'));
       $('ol', box).firstChild.className = 'fail';
-    } finally { busy = false; scroll(); }
+    } finally { clearInterval(box._timer); busy = false; scroll(); }
   }
 
   form.addEventListener('submit', (e) => { e.preventDefault(); send({ text: input.value.trim() }); });

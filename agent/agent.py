@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from .catalogue import Catalogue, Product
@@ -113,12 +114,13 @@ class ShoppingAgent:
         extra_steps = []
         # With a photo: ask SAM 3.1 where each item is, to check the model's reading and show the customer the cut-out.
         photo_check = self._locate_items(items, state, extra_steps) if state.get("photo") and self.segmenter else None
-        # Search the catalogue for every item right away, so the model does not need one round trip per item.
+        # Search the catalogue for every item right away (in parallel: the live catalogue takes seconds per query).
         searches = []
-        for item in items:
-            if not item["search_keywords"].strip():
-                continue
-            result, detail = self._search(item["need"], item["search_keywords"], state)
+        to_search = [item for item in items if item["search_keywords"].strip()]
+        with ThreadPoolExecutor(max_workers=max(1, min(4, len(to_search)))) as pool:
+            found = list(pool.map(lambda item: self.catalogue.search(item["search_keywords"]), to_search))
+        for item, products in zip(to_search, found):
+            result, detail = self._index(item["need"], item["search_keywords"], products, state)
             searches.append(result)
             extra_steps.append(Step("search_catalogue", *STEP_LABELS["search_catalogue"], detail))
         state["extra_steps"] = extra_steps
@@ -131,12 +133,18 @@ class ShoppingAgent:
     def _locate_items(self, items: list[dict], state: dict, extra_steps: list) -> dict:
         """SAM 3.1 per item: number of matches in the photo (for the model) and the cut-outs (for the customer)."""
         report = {}
-        for item in items:
-            concept = item["need"]
+
+        def locate(item):
             try:
-                boxes = self.segmenter.locate(state["photo"], concept)
+                return self.segmenter.locate(state["photo"], item["need"])
             except SegmentError as exc:
-                extra_steps.append(Step("locate_in_photo", *STEP_LABELS["locate_in_photo"], {"need": concept, "error": str(exc)}, ok=False))
+                return exc
+        with ThreadPoolExecutor(max_workers=max(1, min(4, len(items)))) as pool:
+            results = list(pool.map(locate, items))
+        for item, boxes in zip(items, results):
+            concept = item["need"]
+            if isinstance(boxes, SegmentError):
+                extra_steps.append(Step("locate_in_photo", *STEP_LABELS["locate_in_photo"], {"need": concept, "error": str(boxes)}, ok=False))
                 continue
             crops = [c for c in (crop_data_url(state["photo"], box) for box in boxes[:3]) if c]
             report[concept] = {"matches": len(boxes)}
@@ -151,7 +159,9 @@ class ShoppingAgent:
         return self._search(need, query, state)
 
     def _search(self, need: str, query: str, state: dict) -> tuple[dict, dict]:
-        found: list[Product] = self.catalogue.search(query)
+        return self._index(need, query, self.catalogue.search(query), state)
+
+    def _index(self, need: str, query: str, found: list[Product], state: dict) -> tuple[dict, dict]:
         for product in found:
             state["products"][product.id] = product
         # The model only needs what it decides with; links and images stay server-side and reach the customer in the proposal.
@@ -172,7 +182,8 @@ class ShoppingAgent:
         return plan.public(), plan.public()
 
     def _tool_ask_customer(self, args, state):
-        question = {"question_darija": str(args["question_darija"]), "question_en": str(args.get("question_en") or "")}
+        options = [str(o).strip() for o in (args.get("options") or []) if str(o).strip()][:4]
+        question = {"question_darija": str(args["question_darija"]), "question_en": str(args.get("question_en") or ""), "options": options}
         return question, question
 
     def _tool_propose_basket(self, args, state):

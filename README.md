@@ -40,7 +40,7 @@ Design choices:
 - **Money the way Algerians say it.** Budgets are often given in centimes ("300 alf" = 3,000 DZD, "melyoun w nos" = 15,000 DZD); the agent converts, repeats the amount in DZD in its summary so the customer can correct it, and asks when the reading is unclear.
 - **Honest over budget.** When nothing fits, the agent shows the cheapest basket and by how much it is over.
 - **Swap.** Each proposed product has a "بدّل · Swap" button: the agent re-plans the basket without the rejected product (two model calls, no new search) and keeps the other choices.
-- **One clarifying question** when the request is not actionable, then it continues with the whole conversation.
+- **One clarifying question** when the request is not actionable, with 2 to 4 tappable answers when the answer is a choice, then it continues with the whole conversation.
 - **Few model calls.** The catalogue searches run inside the understanding step, so a request needs three model calls (understand, plan, propose) whatever the number of products; the conversation is prompt-cached.
 - **Human in the loop.** Nothing is ordered without the customer's confirmation: "Confirm" opens WhatsApp with the basket written out (products, links, total, budget, wilaya, sizes) for the customer to send to Wfarhali's team, who confirm the final price. The agent never writes to Wfarhali's systems.
 

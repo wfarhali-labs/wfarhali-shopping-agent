@@ -40,9 +40,11 @@ TOOLS: list[dict] = [
                          "description": "Ids of products the customer rejected in this conversation (never propose them again). [] if none."}},
         ["budget_dzd", "needs", "exclude_ids"]),
     _fn("ask_customer",
-        "Ask ONE short clarifying question when the request cannot be fulfilled as is (no product named, nothing found...). Ends your turn.",
-        {"question_darija": {"type": "string"}, "question_en": {"type": "string"}},
-        ["question_darija", "question_en"]),
+        "Ask ONE short clarifying question when the request cannot be fulfilled as is (no product named, nothing found, ambiguous budget...). Ends your turn.",
+        {"question_darija": {"type": "string"}, "question_en": {"type": "string"},
+         "options": {"type": "array", "items": {"type": "string"}, "maxItems": 4,
+                     "description": "2-4 short answers the customer can tap, in Darija (e.g. 'روبة', 'صباط', '3000 دج'). [] when a free answer is needed."}},
+        ["question_darija", "question_en", "options"]),
     _fn("propose_basket",
         "Present the last plan to the customer. Ends your turn. The customer confirms before anything is sent.",
         {"message_darija": {"type": "string", "description": "Short friendly message in Darija about the proposal."},
@@ -58,7 +60,7 @@ Work with tools, step by step:
 2. Only if a search returned nothing relevant, call search_catalogue for that need with other French keywords.
 3. Call plan_basket with the relevant candidate ids per need, best first, and the budget. Never add prices yourself.
 4. Call propose_basket. If the plan is over budget, say so honestly and by how much.
-If no product can be identified, or a search finds nothing relevant, call ask_customer with ONE short question instead.
+If no product can be identified, or a search finds nothing relevant, call ask_customer with ONE short question instead. Whenever the answer can be a choice (which product, which colour, which of two amounts), give 2-4 short tappable answers in options.
 
 Money: Algerians usually count in centimes (100 centimes = 1 DZD). "alf"/"ألف" = 1000 centimes = 10 DZD, "melyoun"/"مليون" = 10000 DZD. So "300 alf" = 3000 DZD, "melyoun w nos" = 15000 DZD, "5 mlayen" = 50000 DZD. "da"/"دج"/"dinar" means dinars as written ("12000 da" = 12000 DZD); a bare number of 1000 or more is dinars. Put the converted budget in budget_dzd and repeat it in DZD in summary_darija so the customer can correct it. If the reading is unclear, or the budget would be under 1000 DZD, call ask_customer with the two possible amounts instead of guessing.
 
