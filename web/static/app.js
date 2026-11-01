@@ -71,7 +71,16 @@
 
   function renderSteps(box, steps) {
     const list = $('ol', box); list.replaceChildren();
-    steps.filter((s) => s.tool !== 'propose_basket' && s.tool !== 'ask_customer').forEach((s) => {
+    // Once the agent has answered, the work log folds into one quiet line; "التفاصيل" opens it for those who want to see.
+    const shown = steps.filter((s) => s.tool !== 'propose_basket' && s.tool !== 'ask_customer');
+    const searches = shown.filter((s) => s.tool === 'search_catalogue').reduce((n, s) => n + (s.detail?.count || 0), 0);
+    const title = $('.title', box);
+    const summary = el('span', '', searches ? `خدمت على طلبك: ${searches} منتج تفحّصو` : 'خدمت على طلبك');
+    const toggle = el('button', 'details-toggle', 'التفاصيل ▾'); toggle.type = 'button';
+    toggle.addEventListener('click', () => { const open = list.hidden; list.hidden = !open; toggle.textContent = open ? 'التفاصيل ▴' : 'التفاصيل ▾'; });
+    title.replaceChildren(summary, toggle);
+    list.hidden = true; box.classList.add('done');
+    shown.forEach((s) => {
       const li = el('li', s.ok ? '' : 'fail');
       const d = s.detail || {};
       let ar = s.label_darija, en = s.label_en;

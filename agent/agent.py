@@ -194,6 +194,6 @@ class ShoppingAgent:
         proposal = {"items": items, "total_dzd": plan.total_dzd, "budget_dzd": plan.budget_dzd, "within_budget": plan.within_budget,
                     "over_by_dzd": plan.over_by, "missing": list(plan.missing),
                     "message_darija": str(args["message_darija"]), "message_en": str(args.get("message_en") or ""),
-                    "note_darija": "السعر تقديري، فريق وفّرهالي يأكد السعر النهائي. التوصيل داخل الجزائر غير محسوب.",
-                    "note_en": "Estimated prices; Wfarhali's team confirms the final price. Delivery inside Algeria not included."}
+                    "note_darija": "السعر تقديري، فريق وفّرهالي يأكد لك السعر النهائي.",
+                    "note_en": "Estimated prices; Wfarhali's team confirms the final price."}
         return proposal, {"items": len(items), "total_dzd": plan.total_dzd}

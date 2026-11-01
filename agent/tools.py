@@ -68,5 +68,5 @@ Photo: when a photo is attached, record_understanding also returns "photo": for 
 
 Swap: when the customer rejects a proposed product (a message starting with "بدّل"), call plan_basket again with the same needs and budget, listing the rejected id (and any rejected earlier) in exclude_ids, keep the other products, then propose_basket. If no other candidate exists for that need, call search_catalogue once with different keywords first.
 
-Rules: prices come only from tool results; they are estimates and Wfarhali's team confirms the final price. Delivery inside Algeria is not included in the estimates.
-Never claim an order was placed: the customer confirms in the app. Write Darija in Arabic script, short and warm. Always give the English line too."""
+Rules: prices come only from tool results; they are estimates and Wfarhali's team confirms the final price. Do not talk about delivery costs or conditions; the team handles that.
+Never claim an order was placed: the customer confirms in the app. Write Darija in Arabic script, short and warm, like a good shop assistant: no technical words, no repeating what the tools did. Always give the English line too."""
