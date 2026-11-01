@@ -12,6 +12,9 @@ _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890
 
 # (pattern, need in English, French keywords, Darija label)
 PRODUCTS = [
+    (r"بوت|بوط|بوتات|بوطات|\bbottes?\b|\bbottines?\b|\bboots?\b", "boots", "bottes", "بوت"),
+    (r"فاست|فيست|فيستة|جاكيت|جاكيتة|دودون|\bvestes?\b|\bjackets?\b|\bdoudoune\b|\bmanteau\b", "jacket", "veste", "فاست"),
+    (r"شال|إشارب|اشارب|كاش[- ]?كول|\bécharpe\b|\bscarf\b", "scarf", "écharpe", "شال"),
     (r"صباط|سباط|صبابط|سبابط|صباطات|\bbaskets?\b|\bsneakers?\b|سبرديلة|سبادري", "sneakers", "baskets", "صباط"),
     (r"صندالة|صنادل|صندل|\bsandales?\b", "sandals", "sandales", "صنادل"),
     (r"روبة|روبه|روبات|فستان|\brobes?\b|\bdress\b", "dress", "robe", "روبة"),
@@ -27,12 +30,13 @@ COLORS = [
     (r"أحمر|احمر|حمرة|\brouge\b|\bred\b", "red", "rouge", "أحمر"),
 ]
 MODIFIERS = [
+    (r"شتا|شتاء|شتوية|شتوي|\bhiver\b|\bwinter\b", "winter", "hiver", "شتوية"),
     (r"صيف|صيفية|صيفي|\bété\b|\bsummer\b", "summer", "été", "صيفية"),
     (r"رجال|رجالي|للرجال|\bhomme\b|\bmen\b", "men", "homme", "رجالي"),
     (r"نسا|نساء|لمرا|للمرا|نسائي|نسائية|\bfemme\b|\bwomen\b", "women", "femme", "نسائي"),
 ]
 WILAYAS = {
-    "الجزائر": "Algiers", "دزاير": "Algiers", "alger": "Algiers", "وهران": "Oran", "oran": "Oran", "قسنطينة": "Constantine",
+    "الجزائر": "Algiers", "دزاير": "Algiers", "alger": "Algiers", "وهران": "Oran", "oran": "Oran", "قسنطينة": "Constantine", "constantine": "Constantine",
     "باتنة": "Batna", "batna": "Batna", "سطيف": "Sétif", "عنابة": "Annaba", "بجاية": "Béjaïa", "تيزي وزو": "Tizi Ouzou",
     "البليدة": "Blida", "تلمسان": "Tlemcen", "بسكرة": "Biskra", "ورقلة": "Ouargla", "الشلف": "Chlef", "سكيكدة": "Skikda",
     "جيجل": "Jijel", "المسيلة": "M'Sila", "بومرداس": "Boumerdès", "تيبازة": "Tipaza", "غرداية": "Ghardaïa", "مستغانم": "Mostaganem",

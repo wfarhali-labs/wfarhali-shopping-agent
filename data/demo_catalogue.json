@@ -1,16 +1,318 @@
 [
- {"id": "demo-snk-white-1", "title": "Baskets blanches cuir femme", "store": "DEMO", "price_dzd": 6900, "category": "shoes", "tags": ["baskets", "chaussures", "blanc", "blanche", "blanches", "femme", "sneakers", "white"]},
- {"id": "demo-snk-white-2", "title": "Baskets blanches sport homme", "store": "DEMO", "price_dzd": 5400, "category": "shoes", "tags": ["baskets", "chaussures", "blanc", "blanches", "homme", "sneakers", "white"]},
- {"id": "demo-snk-black-1", "title": "Baskets noires running", "store": "DEMO", "price_dzd": 7200, "category": "shoes", "tags": ["baskets", "chaussures", "noir", "noires", "running", "sneakers", "black"]},
- {"id": "demo-sandal-1", "title": "Sandales plates été femme", "store": "DEMO", "price_dzd": 3100, "category": "shoes", "tags": ["sandales", "chaussures", "été", "femme"]},
- {"id": "demo-dress-1", "title": "Robe longue fleurie été", "store": "DEMO", "price_dzd": 7400, "category": "fashion", "tags": ["robe", "été", "fleurie", "longue", "femme", "dress", "summer"]},
- {"id": "demo-dress-2", "title": "Robe légère coton été", "store": "DEMO", "price_dzd": 4900, "category": "fashion", "tags": ["robe", "été", "coton", "femme", "dress", "summer"]},
- {"id": "demo-dress-3", "title": "Robe de soirée satin", "store": "DEMO", "price_dzd": 11800, "category": "fashion", "tags": ["robe", "soirée", "satin", "femme", "dress"]},
- {"id": "demo-bag-1", "title": "Sac à main noir femme", "store": "DEMO", "price_dzd": 5600, "category": "bag", "tags": ["sac", "main", "noir", "femme", "handbag", "bag"]},
- {"id": "demo-bag-2", "title": "Sac à dos école", "store": "DEMO", "price_dzd": 3900, "category": "bag", "tags": ["sac", "dos", "école", "backpack", "bag"]},
- {"id": "demo-watch-1", "title": "Montre femme bracelet cuir", "store": "DEMO", "price_dzd": 4500, "category": "jewelry", "tags": ["montre", "femme", "watch"]},
- {"id": "demo-watch-2", "title": "Montre homme acier", "store": "DEMO", "price_dzd": 6200, "category": "jewelry", "tags": ["montre", "homme", "watch"]},
- {"id": "demo-pants-1", "title": "Pantalon homme chino", "store": "DEMO", "price_dzd": 4300, "category": "fashion", "tags": ["pantalon", "homme", "trousers"]},
- {"id": "demo-earbuds-1", "title": "Écouteurs sans fil", "store": "DEMO", "price_dzd": 3600, "category": "electronics", "tags": ["écouteurs", "sans", "fil", "earbuds"]},
- {"id": "demo-perfume-1", "title": "Parfum femme floral", "store": "DEMO", "price_dzd": 5200, "category": "beauty", "tags": ["parfum", "femme", "perfume"]}
+ {
+  "id": "demo-snk-white-1",
+  "title": "Baskets blanches cuir femme",
+  "store": "DEMO",
+  "price_dzd": 6900,
+  "category": "shoes",
+  "tags": [
+   "baskets",
+   "chaussures",
+   "blanc",
+   "blanche",
+   "blanches",
+   "femme",
+   "sneakers",
+   "white"
+  ]
+ },
+ {
+  "id": "demo-snk-white-2",
+  "title": "Baskets blanches sport homme",
+  "store": "DEMO",
+  "price_dzd": 5400,
+  "category": "shoes",
+  "tags": [
+   "baskets",
+   "chaussures",
+   "blanc",
+   "blanches",
+   "homme",
+   "sneakers",
+   "white"
+  ]
+ },
+ {
+  "id": "demo-snk-black-1",
+  "title": "Baskets noires running",
+  "store": "DEMO",
+  "price_dzd": 7200,
+  "category": "shoes",
+  "tags": [
+   "baskets",
+   "chaussures",
+   "noir",
+   "noires",
+   "running",
+   "sneakers",
+   "black"
+  ]
+ },
+ {
+  "id": "demo-sandal-1",
+  "title": "Sandales plates été femme",
+  "store": "DEMO",
+  "price_dzd": 3100,
+  "category": "shoes",
+  "tags": [
+   "sandales",
+   "chaussures",
+   "été",
+   "femme"
+  ]
+ },
+ {
+  "id": "demo-dress-1",
+  "title": "Robe longue fleurie été",
+  "store": "DEMO",
+  "price_dzd": 7400,
+  "category": "fashion",
+  "tags": [
+   "robe",
+   "été",
+   "fleurie",
+   "longue",
+   "femme",
+   "dress",
+   "summer"
+  ]
+ },
+ {
+  "id": "demo-dress-2",
+  "title": "Robe légère coton été",
+  "store": "DEMO",
+  "price_dzd": 4900,
+  "category": "fashion",
+  "tags": [
+   "robe",
+   "été",
+   "coton",
+   "femme",
+   "dress",
+   "summer"
+  ]
+ },
+ {
+  "id": "demo-dress-3",
+  "title": "Robe de soirée satin",
+  "store": "DEMO",
+  "price_dzd": 11800,
+  "category": "fashion",
+  "tags": [
+   "robe",
+   "soirée",
+   "satin",
+   "femme",
+   "dress"
+  ]
+ },
+ {
+  "id": "demo-bag-1",
+  "title": "Sac à main noir femme",
+  "store": "DEMO",
+  "price_dzd": 5600,
+  "category": "bag",
+  "tags": [
+   "sac",
+   "main",
+   "noir",
+   "femme",
+   "handbag",
+   "bag"
+  ]
+ },
+ {
+  "id": "demo-bag-2",
+  "title": "Sac à dos école",
+  "store": "DEMO",
+  "price_dzd": 3900,
+  "category": "bag",
+  "tags": [
+   "sac",
+   "dos",
+   "école",
+   "backpack",
+   "bag"
+  ]
+ },
+ {
+  "id": "demo-watch-1",
+  "title": "Montre femme bracelet cuir",
+  "store": "DEMO",
+  "price_dzd": 4500,
+  "category": "jewelry",
+  "tags": [
+   "montre",
+   "femme",
+   "watch"
+  ]
+ },
+ {
+  "id": "demo-watch-2",
+  "title": "Montre homme acier",
+  "store": "DEMO",
+  "price_dzd": 6200,
+  "category": "jewelry",
+  "tags": [
+   "montre",
+   "homme",
+   "watch"
+  ]
+ },
+ {
+  "id": "demo-pants-1",
+  "title": "Pantalon homme chino",
+  "store": "DEMO",
+  "price_dzd": 4300,
+  "category": "fashion",
+  "tags": [
+   "pantalon",
+   "homme",
+   "trousers"
+  ]
+ },
+ {
+  "id": "demo-earbuds-1",
+  "title": "Écouteurs sans fil",
+  "store": "DEMO",
+  "price_dzd": 3600,
+  "category": "electronics",
+  "tags": [
+   "écouteurs",
+   "sans",
+   "fil",
+   "earbuds"
+  ]
+ },
+ {
+  "id": "demo-perfume-1",
+  "title": "Parfum femme floral",
+  "store": "DEMO",
+  "price_dzd": 5200,
+  "category": "beauty",
+  "tags": [
+   "parfum",
+   "femme",
+   "perfume"
+  ]
+ },
+ {
+  "id": "demo-boot-black-1",
+  "title": "Bottes d'hiver noires fourrées femme",
+  "store": "DEMO",
+  "price_dzd": 9800,
+  "category": "shoes",
+  "tags": [
+   "bottes",
+   "boots",
+   "hiver",
+   "noir",
+   "noire",
+   "noires",
+   "femme",
+   "fourrées",
+   "black",
+   "winter"
+  ]
+ },
+ {
+  "id": "demo-boot-black-2",
+  "title": "Bottines noires cuir talon",
+  "store": "DEMO",
+  "price_dzd": 12400,
+  "category": "shoes",
+  "tags": [
+   "bottes",
+   "bottines",
+   "boots",
+   "noir",
+   "noire",
+   "noires",
+   "cuir",
+   "femme",
+   "black"
+  ]
+ },
+ {
+  "id": "demo-boot-brown-1",
+  "title": "Bottes de neige marron homme",
+  "store": "DEMO",
+  "price_dzd": 11200,
+  "category": "shoes",
+  "tags": [
+   "bottes",
+   "boots",
+   "neige",
+   "hiver",
+   "marron",
+   "homme",
+   "brown",
+   "winter"
+  ]
+ },
+ {
+  "id": "demo-jacket-1",
+  "title": "Veste d'hiver matelassée femme",
+  "store": "DEMO",
+  "price_dzd": 8900,
+  "category": "fashion",
+  "tags": [
+   "veste",
+   "jacket",
+   "hiver",
+   "matelassée",
+   "femme",
+   "winter"
+  ]
+ },
+ {
+  "id": "demo-jacket-2",
+  "title": "Doudoune homme capuche hiver",
+  "store": "DEMO",
+  "price_dzd": 13500,
+  "category": "fashion",
+  "tags": [
+   "veste",
+   "doudoune",
+   "jacket",
+   "hiver",
+   "homme",
+   "capuche",
+   "winter",
+   "men"
+  ]
+ },
+ {
+  "id": "demo-jacket-3",
+  "title": "Veste en cuir noire homme",
+  "store": "DEMO",
+  "price_dzd": 16800,
+  "category": "fashion",
+  "tags": [
+   "veste",
+   "jacket",
+   "cuir",
+   "noir",
+   "noire",
+   "homme",
+   "black",
+   "men"
+  ]
+ },
+ {
+  "id": "demo-scarf-1",
+  "title": "Écharpe en laine grise",
+  "store": "DEMO",
+  "price_dzd": 2600,
+  "category": "fashion",
+  "tags": [
+   "écharpe",
+   "scarf",
+   "laine",
+   "gris",
+   "grise",
+   "hiver",
+   "winter"
+  ]
+ }
 ]
