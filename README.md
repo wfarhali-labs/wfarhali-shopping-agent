@@ -66,7 +66,7 @@ Open `.env` and set `WFAGENT_LLM=meta`, `WFAGENT_STT=meta`, `WFAGENT_SEGMENT=met
 uvicorn web.app:app --port 8000        # open http://localhost:8000
 ```
 The **EN** button at the top right switches the page to English (English first, the agent's Darija under it, English examples); the agent also understands English requests. Things to try (Darija, Arabic, French or English):
-- `نحوس على بوت شتاء أسود مقاس 39 وفاست، الميزانية 2 ملاين، والتوصيل لقسنطينة` → black winter boots and a jacket from Wfarhali's catalogue within 20,000 DZD ("2 mlayen" is 2 million centimes).
+- `نحوس على بوت شتاء أسود مقاس 39 وفاست، الميزانية 2 ملاين، أنا في قسنطينة` → black winter boots and a jacket from Wfarhali's catalogue within 20,000 DZD ("2 mlayen" is 2 million centimes).
 - `نحوس على روبا تاع خرجة بـ 300 ألف` → budget read as 3,000 DZD; nothing fits, so the cheapest dress is proposed with the overrun stated.
 - `صباط بـ 15 ألف` → the amount is ambiguous (150 DZD?), the agent asks which one you meant.
 - `عندي عرس الجمعة` → one clarifying question, then answer `روبة سهرة بـ مليون و200`.

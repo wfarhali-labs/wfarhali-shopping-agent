@@ -37,7 +37,7 @@ MODIFIERS = [
 ]
 WILAYAS = {
     "الجزائر": "Algiers", "دزاير": "Algiers", "alger": "Algiers", "وهران": "Oran", "oran": "Oran", "قسنطينة": "Constantine", "constantine": "Constantine",
-    "باتنة": "Batna", "batna": "Batna", "سطيف": "Sétif", "عنابة": "Annaba", "بجاية": "Béjaïa", "تيزي وزو": "Tizi Ouzou",
+    "باتنة": "Batna", "batna": "Batna", "سطيف": "Sétif",  "عنابة": "Annaba", "بجاية": "Béjaïa", "تيزي وزو": "Tizi Ouzou",
     "البليدة": "Blida", "تلمسان": "Tlemcen", "بسكرة": "Biskra", "ورقلة": "Ouargla", "الشلف": "Chlef", "سكيكدة": "Skikda",
     "جيجل": "Jijel", "المسيلة": "M'Sila", "بومرداس": "Boumerdès", "تيبازة": "Tipaza", "غرداية": "Ghardaïa", "مستغانم": "Mostaganem",
 }
@@ -66,8 +66,8 @@ class Request:
             darija += f"، الميزانية {self.budget_dzd:,} دج".replace(",", " ")
             english += f", budget {self.budget_dzd:,} DZD"
         if self.wilaya:
-            darija += f"، التوصيل لـ{_AR_WILAYA.get(self.wilaya, self.wilaya)}"
-            english += f", delivery to {self.wilaya}"
+            darija += f"، الولاية: {_AR_WILAYA.get(self.wilaya, self.wilaya)}"
+            english += f", wilaya: {self.wilaya}"
         return darija, english
 
 

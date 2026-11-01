@@ -35,7 +35,7 @@ def test_full_turn_proposes_a_basket_within_budget():
     assert proposal["within_budget"] and proposal["total_dzd"] <= 15000
     assert {i["need"] for i in proposal["items"]} == {"white sneakers", "summer dress"}
     assert result.understanding["summary_en"].startswith("white sneakers size 40 + summer dress")
-    assert "التوصيل" in result.understanding["summary_darija"]
+    assert "الولاية" in result.understanding["summary_darija"] and "التوصيل" not in result.understanding["summary_darija"]
 
 
 def test_over_budget_is_said_honestly():
