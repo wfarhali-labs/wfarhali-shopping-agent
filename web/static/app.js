@@ -6,7 +6,9 @@
   const chat = $('#chat'), form = $('#composer'), input = $('#text');
   const photoInput = $('#photoInput'), photoChip = $('#photoChip'), mic = $('#micBtn');
   const EMOJI = { shoes: '👟', fashion: '👗', bag: '👜', jewelry: '⌚', beauty: '🧴', electronics: '🎧' };
-  const dzd = (n) => `≈ ${new Intl.NumberFormat('fr-FR').format(n)} دج`;
+  const dzdAr = (n) => `≈ ${new Intl.NumberFormat('fr-FR').format(n)} دج`;
+  const dzdEn = (n) => `≈ ${new Intl.NumberFormat('en-US').format(n)} DZD`;
+  const dzd = (n) => (lang === 'en' ? dzdEn(n) : dzdAr(n));
   let sessionId = '', photo = null, busy = false, whatsapp = '', understanding = null;
 
   fetch('/api/health').then((r) => r.json()).then((h) => { whatsapp = h.whatsapp || ''; }).catch(() => {});   // /api/health still shows the configuration for diagnostics
@@ -27,7 +29,30 @@
   }
 
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-  const bilingual = (ar, en, cls = 'p') => { const p = el(cls); p.append(document.createTextNode(ar || '')); if (en) p.append(el('span', 'en', en)); return p; };
+  // Language of the page: 'ar' (Darija first, English under it) or 'en' (English first, Darija under it, left-to-right).
+  let lang = 'ar';
+  try { lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('wf-lang') || 'ar'; } catch (_) { /* storage unavailable */ }
+  if (lang !== 'en') lang = 'ar';
+  const T = (ar, en) => (lang === 'en' ? en : ar);
+  const bilingual = (ar, en, cls = 'p') => {
+    const p = el(cls);
+    const main = lang === 'en' ? (en || ar) : (ar || en), sub = lang === 'en' ? ar : en;
+    p.append(document.createTextNode(main || ''));
+    if (sub && sub !== main) { const s = el('span', 'en', sub); s.dir = lang === 'en' ? 'rtl' : 'ltr'; p.append(s); }
+    return p;
+  };
+  function applyLang() {
+    document.documentElement.lang = lang; document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+    document.querySelectorAll('[data-ar][data-en]').forEach((n) => { n.textContent = n.dataset[lang]; });
+    input.placeholder = T('اكتب طلبك… · Type…', 'Type your request…');
+    $('#newChat').textContent = T('طلب جديد ↺', 'New request ↺');
+    $('#langBtn').textContent = lang === 'en' ? 'ع' : 'EN';
+  }
+  $('#langBtn').addEventListener('click', () => {
+    lang = lang === 'en' ? 'ar' : 'en';
+    try { localStorage.setItem('wf-lang', lang); } catch (_) { /* ignore */ }
+    location.reload();
+  });
   const scroll = () => { chat.scrollTop = chat.scrollHeight; };
 
   function addUser(text, photoUrl) {
@@ -36,7 +61,7 @@
     $('p', node).textContent = text || '📷';
     if (photoUrl) { const img = $('img', node); img.src = photoUrl; img.hidden = false; }
     chat.querySelectorAll('.msg.user .edit').forEach((b) => b.remove());          // only the last message can be edited
-    const edit = $('.edit', node);
+    const edit = $('.edit', node); edit.textContent = T('عدّل ✎', 'Edit ✎');
     if (text && !text.startsWith('🎤') && !text.startsWith('بدّل')) {
       edit.addEventListener('click', () => { input.value = text; input.focus(); });
     } else { edit.remove(); }
@@ -47,10 +72,12 @@
   $('#newChat').addEventListener('click', () => {
     sessionId = ''; understanding = null; clearPhoto(); input.value = '';
     chat.replaceChildren(helloNode.cloneNode(true));
-    chat.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => send({ text: b.dataset.example })));
+    applyLang(); wireExamples();
     input.focus();
   });
   const helloNode = $('#hello').cloneNode(true);
+  const wireExamples = () => document.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => send({ text: lang === 'en' && b.dataset.exampleEn ? b.dataset.exampleEn : b.dataset.example })));
+  applyLang();
 
   const HINTS = [['…يفهم طلبك', 'understanding…'], ['…يبحث في متاجر العالم (ياخذ ثواني)', 'searching world stores (takes a few seconds)…'],
                  ['…يحسب السلة في حدود الميزانية', 'planning within budget…'], ['…يحضّر الاقتراح', 'preparing the proposal…']];
@@ -75,9 +102,9 @@
     const shown = steps.filter((s) => s.tool !== 'propose_basket' && s.tool !== 'ask_customer');
     const searches = shown.filter((s) => s.tool === 'search_catalogue').reduce((n, s) => n + (s.detail?.count || 0), 0);
     const title = $('.title', box);
-    const summary = el('span', '', searches ? `خدمت على طلبك: ${searches} منتج تفحّصو` : 'خدمت على طلبك');
-    const toggle = el('button', 'details-toggle', 'التفاصيل ▾'); toggle.type = 'button';
-    toggle.addEventListener('click', () => { const open = list.hidden; list.hidden = !open; toggle.textContent = open ? 'التفاصيل ▴' : 'التفاصيل ▾'; });
+    const summary = el('span', '', searches ? T(`خدمت على طلبك: ${searches} منتج تفحّصو`, `Done: ${searches} products checked`) : T('خدمت على طلبك', 'Done'));
+    const toggle = el('button', 'details-toggle', T('التفاصيل ▾', 'Details ▾')); toggle.type = 'button';
+    toggle.addEventListener('click', () => { const open = list.hidden; list.hidden = !open; toggle.textContent = open ? T('التفاصيل ▴', 'Details ▴') : T('التفاصيل ▾', 'Details ▾'); });
     title.replaceChildren(summary, toggle);
     list.hidden = true; box.classList.add('done');
     shown.forEach((s) => {
@@ -90,7 +117,7 @@
         ar = d.count === 1 ? `${s.label_darija}: ${d.need} — هذا هو لي فهمت` : d.count === 0 ? `ما لقيتش «${d.need}» في الصورة` : `لقيت ${d.count} «${d.need}» في الصورة`;
         en = `${s.label_en}: “${d.need}” — ${d.count} match${d.count === 1 ? '' : 'es'}`;
       }
-      if (s.tool === 'plan_basket' && d.total_dzd != null) { ar = `${s.label_darija}: ${dzd(d.total_dzd)}`; en = `${s.label_en}: ${d.within_budget ? 'fits' : 'over by ' + d.over_by_dzd + ' DZD'}`; }
+      if (s.tool === 'plan_basket' && d.total_dzd != null) { ar = `${s.label_darija}: ${dzdAr(d.total_dzd)}`; en = `${s.label_en}: ${d.within_budget ? 'fits' : 'over by ' + d.over_by_dzd + ' DZD'}`; }
       if (!s.ok) { en = `${s.label_en} — retried`; }
       const body = el('div'); body.append(bilingual(ar, en, 'span'));
       if (d.thumbnails?.length) { const t = el('div', 'thumbs'); d.thumbnails.forEach((u) => { const i = el('img'); i.src = u; i.alt = ''; i.referrerPolicy = 'no-referrer'; t.append(i); }); body.append(t); }
@@ -123,8 +150,8 @@
       $('.need', card).textContent = item.need;
       $('h3', card).textContent = item.title;
       $('.store', card).textContent = item.store || 'Store';
-      $('.price', card).textContent = item.price_dzd ? dzd(item.price_dzd) : 'السعر في الخطوة الجاية';
-      const swap = el('button', 'swap', 'بدّل · Swap');
+      $('.price', card).textContent = item.price_dzd ? dzd(item.price_dzd) : T('السعر في الخطوة الجاية', 'Price confirmed later');
+      const swap = el('button', 'swap', T('بدّل · Swap', 'Swap · بدّل'));
       swap.type = 'button';
       swap.addEventListener('click', () => {
         node.querySelectorAll('button').forEach((b) => { b.disabled = true; });
@@ -137,12 +164,13 @@
     node.append(cards);
     const total = el('div', p.within_budget ? 'total' : 'total over');
     const budget = p.budget_dzd ? ` / ${new Intl.NumberFormat('fr-FR').format(p.budget_dzd)} دج` : '';
-    total.append(bilingual(`المجموع ${dzd(p.total_dzd)}${budget} — ${p.within_budget ? 'داخل الميزانية ✓' : 'يفوت الميزانية'}`,
-      `Total ${p.total_dzd} DZD — ${p.within_budget ? 'within budget ✓' : 'over budget by ' + p.over_by_dzd + ' DZD'}`, 'span'));
+    const budgetEn = p.budget_dzd ? ` / ${new Intl.NumberFormat('en-US').format(p.budget_dzd)} DZD` : '';
+    total.append(bilingual(`المجموع ${dzdAr(p.total_dzd)}${budget} — ${p.within_budget ? 'داخل الميزانية ✓' : 'يفوت الميزانية'}`,
+      `Total ${dzdEn(p.total_dzd)}${budgetEn} — ${p.within_budget ? 'within budget ✓' : 'over budget by ' + p.over_by_dzd + ' DZD'}`, 'span'));
     node.append(total);
     node.append(bilingual(p.note_darija, p.note_en, 'p')); node.lastChild.className = 'note';
     const actions = el('div', 'actions');
-    const confirm = el('button', 'btn', 'أكّد وأرسل طلب السعر · Confirm');
+    const confirm = el('button', 'btn', T('أكّد وأرسل طلب السعر · Confirm', 'Confirm · send the price request'));
     confirm.type = 'button';
     confirm.addEventListener('click', () => {
       confirm.disabled = true;
@@ -152,7 +180,7 @@
         window.open(url, '_blank', 'noopener');
         done.append(bilingual('فتحت لك واتساب وفّرهالي والرسالة جاهزة فيها السلة. ابعثها، وفريقنا يأكد لك السعر النهائي.',
           'WhatsApp is open with your basket ready to send. Wfarhali’s team confirms the final price.'));
-        const again = el('a', 'en', 'إذا ما تفتحش واتساب، اضغط هنا · Open WhatsApp'); again.href = url; again.target = '_blank'; again.rel = 'noopener';
+        const again = el('a', 'en', T('إذا ما تفتحش واتساب، اضغط هنا · Open WhatsApp', 'If WhatsApp did not open, click here')); again.href = url; again.target = '_blank'; again.rel = 'noopener';
         done.append(again);
       } else {
         done.append(bilingual('تمام! (عرض تجريبي: ما تبعث حتى طلب). في النسخة الكاملة يوصل الطلب لفريق وفّرهالي ويأكد السعر.',
@@ -200,7 +228,7 @@
   }
 
   form.addEventListener('submit', (e) => { e.preventDefault(); send({ text: input.value.trim() }); });
-  document.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => send({ text: b.dataset.example })));
+  wireExamples();
 
   // ---- photo ----
   function clearPhoto() { photo = null; photoChip.hidden = true; $('#photoThumb').removeAttribute('src'); }

@@ -15,7 +15,7 @@ PRODUCTS = [
     (r"صباط|سباط|صبابط|سبابط|صباطات|\bbaskets?\b|\bsneakers?\b|سبرديلة|سبادري", "sneakers", "baskets", "صباط"),
     (r"صندالة|صنادل|صندل|\bsandales?\b", "sandals", "sandales", "صنادل"),
     (r"روبة|روبه|روبات|فستان|\brobes?\b|\bdress\b", "dress", "robe", "روبة"),
-    (r"ساك|صاك|حقيبة|شنطة|\bsac\b", "handbag", "sac à main", "ساك"),
+    (r"ساك|صاك|حقيبة|شنطة|\bsac\b|\bhandbag\b|\bbag\b", "handbag", "sac à main", "ساك"),
     (r"ساعة|ساعه|مونطر|\bmontre\b|\bwatch\b", "watch", "montre", "ساعة"),
     (r"سروال|سراول|\bpantalon\b", "trousers", "pantalon", "سروال"),
     (r"كيتمان|سماعات|\bécouteurs\b|\bearbuds\b", "earbuds", "écouteurs sans fil", "سماعات"),

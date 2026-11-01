@@ -13,18 +13,19 @@
 <header class="top">
   <div class="brand"><img class="logo" src="/static/logo.png" alt="wfarhali"><span class="agent-tag">Agent</span></div>
   <div class="top-right">
+    <button type="button" class="langbtn" id="langBtn" title="English / العربية">EN</button>
     <button type="button" class="newchat" id="newChat" title="Start over">طلب جديد ↺</button>
   </div>
 </header>
 
 <main class="chat" id="chat" aria-live="polite">
   <section class="hello" id="hello">
-    <h1>واش حاب تشري اليوم؟</h1>
-    <p class="en">What would you like to buy today? Speak, type or send a photo, in Darija, Arabic or French.</p>
+    <h1 data-ar="واش حاب تشري اليوم؟" data-en="What would you like to buy today?">واش حاب تشري اليوم؟</h1>
+    <p class="en" data-ar="What would you like to buy today? Speak, type or send a photo, in Darija, Arabic or French." data-en="Speak, type or send a photo. The agent understands Algerian Darija, Arabic, French and English.">What would you like to buy today? Speak, type or send a photo, in Darija, Arabic or French.</p>
     <div class="examples">
-      <button type="button" data-example="حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص، والتوصيل لباتنة">صباط أبيض + روبة صيف بـ مليون ونص</button>
-      <button type="button" data-example="ساك لمرا أسود وساعة بـ مليون">ساك أسود + ساعة بـ مليون</button>
-      <button type="button" data-example="عندي عرس الجمعة">عندي عرس الجمعة</button>
+      <button type="button" data-example="حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص، والتوصيل لباتنة" data-example-en="White sneakers size 40 and a summer dress, budget 15000 da, delivery to Batna" data-ar="صباط أبيض + روبة صيف بـ مليون ونص" data-en="White sneakers + summer dress, 15,000 DZD">صباط أبيض + روبة صيف بـ مليون ونص</button>
+      <button type="button" data-example="ساك لمرا أسود وساعة بـ مليون" data-example-en="Black handbag and a watch, budget 10000 da" data-ar="ساك أسود + ساعة بـ مليون" data-en="Black handbag + watch, 10,000 DZD">ساك أسود + ساعة بـ مليون</button>
+      <button type="button" data-example="عندي عرس الجمعة" data-example-en="I have a wedding on Friday" data-ar="عندي عرس الجمعة" data-en="I have a wedding on Friday">عندي عرس الجمعة</button>
     </div>
   </section>
 </main>

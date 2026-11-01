@@ -12,6 +12,12 @@ body { font-family: "Noto Sans Arabic", "Inter", "Segoe UI", system-ui, sans-ser
 .brand .agent-tag { color: var(--brand); font-weight: 700; font-size: 13px; border: 1.5px solid var(--brand); border-radius: 99px; padding: 2px 10px; }
 .top-right { display: flex; align-items: center; gap: 8px; }
 .newchat { border: 1.5px solid var(--brand); background: #fff; color: var(--brand); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.langbtn { border: 1.5px solid var(--line); background: #fff; color: var(--ink); border-radius: 99px; width: 40px; height: 34px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+html[dir=ltr] .en { direction: rtl; text-align: left; }
+html[dir=ltr] .msg.user { align-self: flex-end; border-bottom-right-radius: var(--radius); border-bottom-left-radius: 6px; }
+html[dir=ltr] .msg.agent { align-self: flex-start; border-bottom-left-radius: var(--radius); border-bottom-right-radius: 6px; }
+html[dir=ltr] .msg.user .edit { right: auto; left: 8px; }
+html[dir=ltr] .card h3 { text-align: left; }
 
 .msg.user { position: relative; }
 .msg.user .edit { position: absolute; bottom: -22px; right: 8px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; padding: 2px 4px; }
