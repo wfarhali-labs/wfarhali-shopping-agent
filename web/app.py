@@ -76,6 +76,15 @@ app = FastAPI(title="Wfarhali shopping agent", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
+@app.middleware("http")
+async def no_stale_assets(request: Request, call_next):
+    """Browsers must re-check the page and its assets on every visit, so an update never shows half old, half new."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/")
 def index():
     return FileResponse(ROOT / "static" / "index.html")
