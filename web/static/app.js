@@ -83,16 +83,17 @@
   const HINTS = [['…يفهم طلبك', 'understanding…'], ['…يبحث في متاجر العالم (ياخذ ثواني)', 'searching world stores (takes a few seconds)…'],
                  ['…يحسب السلة في حدود الميزانية', 'planning within budget…'], ['…يحضّر الاقتراح', 'preparing the proposal…']];
   function stepsBox() {
+    // While the agent works the customer sees only a typing indicator (three moving dots), like a chat app.
     const node = $('#tplSteps').content.firstElementChild.cloneNode(true);
-    const li = el('li', 'busy'); li.append(bilingual(HINTS[0][0], HINTS[0][1], 'span'));
-    const clock = el('span', 'clock', '0 ث'); li.append(clock);
+    const typing = el('div', 'typing'); typing.append(el('span'), el('span'), el('span'));
+    $('.title', node).replaceWith(typing);
+    const li = el('li', 'busy'); li.append(bilingual(HINTS[0][0], HINTS[0][1], 'span')); li.hidden = !debug;
     $('ol', node).append(li); chat.append(node); scroll();
     const started = Date.now();
-    node._timer = setInterval(() => {                       // live feedback while the agent works
+    node._timer = setInterval(() => {                       // the detailed hints only exist in ?debug=1
       const s = Math.round((Date.now() - started) / 1000);
-      clock.textContent = `${s} ث · ${s}s`;
       const hint = HINTS[Math.min(HINTS.length - 1, Math.floor(s / 4))];
-      li.firstChild.replaceWith(bilingual(hint[0], hint[1], 'span'));
+      li.replaceChildren(bilingual(hint[0], hint[1], 'span'), el('span', 'clock', `${s}s`));
     }, 1000);
     return node;
   }
@@ -102,7 +103,7 @@
     // Once the agent has answered, the work log folds into one quiet line; "التفاصيل" opens it for those who want to see.
     const shown = steps.filter((s) => s.tool !== 'propose_basket' && s.tool !== 'ask_customer');
     const searches = shown.filter((s) => s.tool === 'search_catalogue').reduce((n, s) => n + (s.detail?.count || 0), 0);
-    const title = $('.title', box);
+    const title = el('p', 'title'); $('.typing', box)?.replaceWith(title);
     const summary = el('span', '', searches ? T(`خدمت على طلبك: ${searches} منتج تفحّصو`, `Done: ${searches} products checked`) : T('خدمت على طلبك', 'Done'));
     const toggle = el('button', 'details-toggle', T('التفاصيل ▾', 'Details ▾')); toggle.type = 'button';
     toggle.addEventListener('click', () => { const open = list.hidden; list.hidden = !open; toggle.textContent = open ? T('التفاصيل ▴', 'Details ▴') : T('التفاصيل ▾', 'Details ▾'); });
@@ -174,10 +175,13 @@
     });
     node.append(cards);
     const total = el('div', p.within_budget ? 'total' : 'total over');
-    const budget = p.budget_dzd ? ` / ${new Intl.NumberFormat('fr-FR').format(p.budget_dzd)} دج` : '';
-    const budgetEn = p.budget_dzd ? ` / ${new Intl.NumberFormat('en-US').format(p.budget_dzd)} DZD` : '';
-    total.append(bilingual(`المجموع ${dzdAr(p.total_dzd)}${budget} — ${p.within_budget ? 'داخل الميزانية ✓' : 'يفوت الميزانية'}`,
-      `Total ${dzdEn(p.total_dzd)}${budgetEn} — ${p.within_budget ? 'within budget ✓' : 'over budget by ' + p.over_by_dzd + ' DZD'}`, 'span'));
+    if (p.budget_dzd) {
+      const budget = ` / ${new Intl.NumberFormat('fr-FR').format(p.budget_dzd)} دج`, budgetEn = ` / ${new Intl.NumberFormat('en-US').format(p.budget_dzd)} DZD`;
+      total.append(bilingual(`المجموع ${dzdAr(p.total_dzd)}${budget} — ${p.within_budget ? 'داخل الميزانية ✓' : 'يفوت الميزانية'}`,
+        `Total ${dzdEn(p.total_dzd)}${budgetEn} — ${p.within_budget ? 'within budget ✓' : 'over budget by ' + p.over_by_dzd + ' DZD'}`, 'span'));
+    } else {                                                 // no budget given: just the total, no budget verdict
+      total.append(bilingual(`المجموع ${dzdAr(p.total_dzd)}`, `Total ${dzdEn(p.total_dzd)}`, 'span'));
+    }
     node.append(total);
     node.append(bilingual(p.note_darija, p.note_en, 'p')); node.lastChild.className = 'note';
     const actions = el('div', 'actions');

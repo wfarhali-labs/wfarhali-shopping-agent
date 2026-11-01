@@ -184,3 +184,24 @@ def test_meta_client_retries_model_not_found_then_falls_back(monkeypatch):
     turn = MetaChatModel(api_key="k", client=client).complete([{"role": "user", "content": "hi"}], [])
     assert turn.content == "OK"
     assert calls == ["muse-spark-1.3", "muse-spark-1.3", "muse-spark-1.3", "muse-spark-1.2"]   # 1 try + 2 retries, then the fallback
+
+
+def test_rejected_products_never_come_back_even_if_the_model_forgets():
+    first = agent().run(None, DEMO)
+    shoes = next(i for i in first.proposal["items"] if i["need"] == "white sneakers")
+    swap1 = f"بدّل white sneakers: ماشي «{shoes['title']}» (id {shoes['id']})، اقترح لي منتج آخر لنفس الحاجة في نفس الميزانية."
+    second = agent().run(first.messages, swap1, products=first.products)
+    shoes2 = next(i for i in second.proposal["items"] if i["need"] == "white sneakers")
+    assert shoes2["id"] != shoes["id"]
+    # a model that forgets the earlier rejection: the agent still blocks both rejected ids
+    swap2 = f"بدّل white sneakers: ماشي «{shoes2['title']}» (id {shoes2['id']})، اقترح لي منتج آخر لنفس الحاجة في نفس الميزانية."
+    model = Scripted([ModelTurn(tool_calls=[ToolCall("1", "plan_basket", {"budget_dzd": 15000, "exclude_ids": [], "needs": [
+        {"need": "white sneakers", "candidate_ids": [shoes["id"], shoes2["id"], "demo-snk-black-1"]}]})]),
+        ModelTurn(tool_calls=[ToolCall("2", "propose_basket", {"message_darija": "هاك", "message_en": "here"})])])
+    third = ShoppingAgent(model, DemoCatalogue()).run(second.messages, swap2, products=second.products)
+    assert third.status == "proposal" and third.proposal["items"][0]["id"] not in {shoes["id"], shoes2["id"]}
+    # nothing left at all: the tool says so, so the model can search again
+    model = Scripted([ModelTurn(tool_calls=[ToolCall("1", "plan_basket", {"budget_dzd": 15000, "exclude_ids": [], "needs": [
+        {"need": "white sneakers", "candidate_ids": [shoes["id"], shoes2["id"]]}]})]), ModelTurn(content="?")])
+    fourth = ShoppingAgent(model, DemoCatalogue()).run(second.messages, swap2, products=second.products)
+    assert "no candidate left" in [m for m in fourth.messages if m["role"] == "tool"][-1]["content"]

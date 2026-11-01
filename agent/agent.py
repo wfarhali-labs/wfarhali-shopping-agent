@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
@@ -50,6 +51,23 @@ class TurnResult:
                 "proposal": self.proposal, "question": self.question, "error": self.error}
 
 
+_ID_IN_SWAP = re.compile(r"\(id ([^)]+)\)")
+
+
+def _rejected_ids(messages: list[dict]) -> set[str]:
+    """Ids of products the customer rejected with the swap button, read from their own messages ("بدّل …: (id X)")."""
+    rejected = set()
+    for message in messages:
+        if message.get("role") != "user":
+            continue
+        content = message.get("content")
+        texts = [content] if isinstance(content, str) else [p.get("text", "") for p in content or [] if p.get("type") == "text"]
+        for text in texts:
+            if text.strip().startswith("بدّل"):
+                rejected |= set(_ID_IN_SWAP.findall(text))
+    return rejected
+
+
 class ShoppingAgent:
     def __init__(self, model: ChatModel, catalogue: Catalogue, max_steps: int = 10, segmenter: Segmenter | None = None):
         self.model, self.catalogue, self.max_steps, self.segmenter = model, catalogue, max_steps, segmenter
@@ -68,7 +86,8 @@ class ShoppingAgent:
         messages = list(history or []) or [{"role": "developer", "content": SYSTEM_PROMPT}]
         messages.append(self.user_message(text, image_data_url))
         steps: list[Step] = []
-        state = {"products": dict(products or {}), "understanding": None, "plan": None, "photo": image_data_url}
+        state = {"products": dict(products or {}), "understanding": None, "plan": None, "photo": image_data_url,
+                 "rejected": _rejected_ids(messages)}          # every product the customer swapped away, whatever the model remembers
 
         def done(status, **kw):
             return TurnResult(status, steps, messages, state["understanding"], products=state["products"], **kw)
@@ -185,15 +204,20 @@ class ShoppingAgent:
                                                                         "thumbnails": thumbnails}
 
     def _tool_plan_basket(self, args, state):
-        excluded = {str(pid) for pid in args.get("exclude_ids") or []}       # products the customer rejected ("بدّل")
-        needs = {}
+        excluded = {str(pid) for pid in args.get("exclude_ids") or []} | state.get("rejected", set())   # swapped-away products never come back
+        needs, emptied = {}, []
         for entry in args["needs"]:
             ids = [str(pid) for pid in entry["candidate_ids"] if str(pid) in state["products"] and str(pid) not in excluded]
             needs[str(entry["need"])] = [(pid, state["products"][pid].price_dzd) for pid in ids]
+            if not ids and entry["candidate_ids"]:
+                emptied.append(str(entry["need"]))
         budget = args.get("budget_dzd")
         plan = plan_basket(needs, int(budget) if budget else None)
         state["plan"] = plan
-        return plan.public(), plan.public()
+        result = plan.public()
+        if emptied:
+            result["note"] = f"no candidate left for {', '.join(emptied)} after removing the rejected products: call search_catalogue with other keywords, then plan again"
+        return result, plan.public()
 
     def _tool_ask_customer(self, args, state):
         options = [str(o).strip() for o in (args.get("options") or []) if str(o).strip()][:4]
