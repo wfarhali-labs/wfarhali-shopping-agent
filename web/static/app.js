@@ -32,6 +32,8 @@
   let lang = 'ar';
   try { lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('wf-lang') || 'ar'; } catch (_) { /* storage unavailable */ }
   if (lang !== 'en') lang = 'ar';
+  let debug = false;                                        // ?debug=1 keeps the agent's work log on screen (for reviewers)
+  try { debug = new URLSearchParams(location.search).get('debug') === '1'; } catch (_) { /* ignore */ }
   const T = (ar, en) => (lang === 'en' ? en : ar);
   const bilingual = (ar, en, cls = 'p') => {
     const p = el(cls);
@@ -124,8 +126,18 @@
     });
   }
 
-  function renderQuestion(q) {
-    const node = el('div', 'msg agent'); node.append(bilingual(q.question_darija, q.question_en));
+  function cropsOf(steps) {                                 // the item cut out of the customer's photo, if any
+    return (steps || []).filter((s) => s.tool === 'locate_in_photo').flatMap((s) => s.detail?.thumbnails || []);
+  }
+  function addCrops(node, crops) {
+    if (!crops.length) return;
+    const row = el('div', 'crops');
+    row.append(bilingual('هذا هو لي فهمت من الصورة:', 'What I understood from your photo:', 'span'));
+    crops.forEach((u) => { const i = el('img'); i.src = u; i.alt = ''; row.append(i); });
+    node.append(row);
+  }
+  function renderQuestion(q, crops = []) {
+    const node = el('div', 'msg agent'); addCrops(node, crops); node.append(bilingual(q.question_darija, q.question_en));
     if (q.options?.length) {                                   // tap an answer instead of typing it
       const row = el('div', 'options');
       q.options.forEach((o) => {
@@ -138,8 +150,8 @@
     chat.append(node); scroll(); input.focus();
   }
 
-  function renderProposal(p) {
-    const node = el('div', 'msg agent');
+  function renderProposal(p, crops = []) {
+    const node = el('div', 'msg agent'); addCrops(node, crops);
     node.append(bilingual(p.message_darija, p.message_en));
     const cards = el('div', 'cards');
     p.items.forEach((item) => {
@@ -212,9 +224,10 @@
       if (!response.ok || data.status === 'error') throw new Error(data.error || data.detail || response.statusText);
       sessionId = data.session_id;
       if (data.understanding) understanding = data.understanding;
-      renderSteps(box, data.steps || []);
-      if (data.status === 'question') renderQuestion(data.question);
-      if (data.status === 'proposal') renderProposal(data.proposal);
+      if (debug) renderSteps(box, data.steps || []); else { clearInterval(box._timer); box.remove(); }   // the customer sees the answer, not the machinery
+      const crops = cropsOf(data.steps);
+      if (data.status === 'question') renderQuestion(data.question, crops);
+      if (data.status === 'proposal') renderProposal(data.proposal, crops);
     } catch (error) {
       const msg = String(error.message || error);
       const darija = msg.includes('silent recording') ? 'التسجيل فارغ: الميكروفون ما سجّل والو. شوفي إذن الميكروفون وعاودي.'

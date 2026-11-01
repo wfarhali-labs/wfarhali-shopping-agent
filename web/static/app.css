@@ -46,6 +46,8 @@ html[dir=ltr] .card h3 { text-align: left; }
 .steps .thumbs { display: flex; gap: 6px; margin-top: 4px; }
 .steps .thumbs img { width: 38px; height: 38px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
 @keyframes spin { to { transform: rotate(360deg); } }
+.crops { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+.crops img { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); }
 .options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .options .option { border: 1.5px solid var(--brand); background: #fff; color: var(--brand-dark); border-radius: 99px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
 .options .option:disabled { opacity: .5; cursor: default; }
