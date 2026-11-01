@@ -74,3 +74,27 @@ body { font-family: "Noto Sans Arabic", "Inter", "Segoe UI", system-ui, sans-ser
 .photo-chip img { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; }
 .photo-chip button { border: 0; background: var(--soft); border-radius: 50%; width: 26px; height: 26px; cursor: pointer; }
 .error { color: var(--warn); }
+
+/* Desktop first (the demo and the judges run it on a laptop): wider column, cards side by side, larger type. */
+@media (min-width: 900px) {
+  html { font-size: 17px; }
+  .top { padding: 14px 32px; }
+  .brand .logo { height: 52px; }
+  .chat { max-width: 1040px; padding: 24px 32px; gap: 16px; }
+  .composer .bar { max-width: 1040px; margin: 0 auto; }
+  .hello { padding: 64px 8px 32px; }
+  .hello h1 { font-size: 40px; }
+  .hello .en { font-size: 16px; }
+  .examples { margin-top: 28px; gap: 12px; }
+  .examples button { padding: 12px 20px; font-size: 16px; }
+  .msg { max-width: 80%; padding: 18px 22px; }
+  .msg.agent { max-width: 100%; }
+  .cards { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+  .card { grid-template-columns: 150px 1fr; gap: 18px; padding: 16px; }
+  .card .media { width: 150px; height: 150px; font-size: 60px; }
+  .card h3 { font-size: 18px; }
+  .card .price { font-size: 24px; }
+  .options .option { padding: 10px 18px; font-size: 16px; }
+  .btn { min-height: 56px; font-size: 18px; max-width: 520px; justify-self: center; width: 100%; }
+  .steps .thumbs img { width: 56px; height: 56px; }
+}
