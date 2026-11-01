@@ -43,7 +43,7 @@ TOOLS: list[dict] = [
         "Ask ONE short clarifying question when the request cannot be fulfilled as is (no product named, nothing found, ambiguous budget...). Ends your turn.",
         {"question_darija": {"type": "string"}, "question_en": {"type": "string"},
          "options": {"type": "array", "items": {"type": "string"}, "maxItems": 4,
-                     "description": "2-4 short answers the customer can tap, in Darija (e.g. 'روبة', 'صباط', '3000 دج'). [] when a free answer is needed."}},
+                     "description": "2-4 short answers the customer can tap, in the customer's language (e.g. 'روبة', 'صباط', '3000 دج'). [] when a free answer is needed."}},
         ["question_darija", "question_en", "options"]),
     _fn("propose_basket",
         "Present the last plan to the customer. Ends your turn. The customer confirms before anything is sent.",
