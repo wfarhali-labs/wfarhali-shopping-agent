@@ -73,7 +73,7 @@ class MockChatModel:
             summary_darija, summary_en = request.summaries()
             return call("record_understanding",
                         items=[{"need": i.need, "search_keywords": i.search_keywords, "size": i.size, "color": i.color} for i in request.items],
-                        budget_dzd=request.budget_dzd, wilaya=request.wilaya, summary_darija=summary_darija, summary_en=summary_en)
+                        budget_dzd=request.budget_dzd, summary_darija=summary_darija, summary_en=summary_en)
         understanding_id, understanding = next((cid, args) for cid, (name, args) in calls.items() if name == "record_understanding")
         if "plan_basket" not in done:
             # record_understanding already searched the catalogue for every item; its result carries the products

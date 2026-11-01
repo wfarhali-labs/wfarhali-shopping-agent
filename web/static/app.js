@@ -22,7 +22,6 @@
     });
     lines.push(`المجموع التقديري: ${p.total_dzd} دج${p.budget_dzd ? ' / ميزانيتي: ' + p.budget_dzd + ' دج' : ''}`);
     const u = understanding || {};
-    if (u.wilaya) lines.push(`الولاية: ${u.wilaya}`);
     const sizes = (u.items || []).filter((it) => it.size || it.color).map((it) => `${it.need}: ${[it.size && 'مقاس ' + it.size, it.color].filter(Boolean).join(', ')}`);
     if (sizes.length) lines.push(`التفاصيل: ${sizes.join(' | ')}`);
     return lines.join('\n');

@@ -9,7 +9,7 @@ from agent.catalogue import DemoCatalogue
 from agent.llm import MetaChatModel, ModelError, ModelTurn, ToolCall
 from agent.mock_llm import MockChatModel
 
-DEMO = "حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص، والتوصيل لباتنة"
+DEMO = "حاب صباط أبيض مقاس 40 وروبة صيف، الميزانية مليون ونص"
 
 
 def agent():
@@ -20,7 +20,7 @@ def test_darija_reader_understands_the_demo_sentence():
     request = darija.parse(DEMO)
     assert [i.need for i in request.items] == ["white sneakers", "summer dress"]
     assert request.items[0].size == "40" and request.items[0].search_keywords == "baskets blanc"
-    assert request.budget_dzd == 15000 and request.wilaya == "Batna"
+    assert request.budget_dzd == 15000
     assert darija.parse("ساعة لمرا بـ ٥٠٠ ألف").budget_dzd == 5000         # Arabic-Indic digits; "ألف" = 1000 centimes = 10 DZD
     assert darija.parse("روبة تاع خرجة بـ 300 ألف").budget_dzd == 3000
     assert darija.parse("ساك بـ مليون").budget_dzd == 10000 and darija.parse("ساك بـ 2 ملاين").budget_dzd == 20000
@@ -35,7 +35,7 @@ def test_full_turn_proposes_a_basket_within_budget():
     assert proposal["within_budget"] and proposal["total_dzd"] <= 15000
     assert {i["need"] for i in proposal["items"]} == {"white sneakers", "summer dress"}
     assert result.understanding["summary_en"].startswith("white sneakers size 40 + summer dress")
-    assert "الولاية" in result.understanding["summary_darija"] and "التوصيل" not in result.understanding["summary_darija"]
+    assert "الميزانية" in result.understanding["summary_darija"] and "التوصيل" not in result.understanding["summary_darija"]
 
 
 def test_over_budget_is_said_honestly():
@@ -132,7 +132,7 @@ def test_understanding_searches_at_once_so_the_model_can_plan_directly():
     model = Scripted([
         ModelTurn(tool_calls=[ToolCall("1", "record_understanding", {
             "items": [{"need": "white sneakers", "search_keywords": "baskets blanc"}, {"need": "dress", "search_keywords": "robe"}],
-            "budget_dzd": 15000, "wilaya": "", "summary_darija": "صباط وروبة", "summary_en": "sneakers and a dress"})]),
+            "budget_dzd": 15000, "summary_darija": "صباط وروبة", "summary_en": "sneakers and a dress"})]),
         ModelTurn(tool_calls=[ToolCall("2", "plan_basket", {"budget_dzd": 15000, "needs": [
             {"need": "white sneakers", "candidate_ids": ["demo-snk-white-1"]}, {"need": "dress", "candidate_ids": ["demo-dress-1"]}]})]),
         ModelTurn(tool_calls=[ToolCall("3", "propose_basket", {"message_darija": "هاك", "message_en": "here"})]),

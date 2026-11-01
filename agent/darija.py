@@ -35,13 +35,6 @@ MODIFIERS = [
     (r"رجال|رجالي|للرجال|\bhomme\b|\bmen\b", "men", "homme", "رجالي"),
     (r"نسا|نساء|لمرا|للمرا|نسائي|نسائية|\bfemme\b|\bwomen\b", "women", "femme", "نسائي"),
 ]
-WILAYAS = {
-    "الجزائر": "Algiers", "دزاير": "Algiers", "alger": "Algiers", "وهران": "Oran", "oran": "Oran", "قسنطينة": "Constantine", "constantine": "Constantine",
-    "باتنة": "Batna", "batna": "Batna", "سطيف": "Sétif",  "عنابة": "Annaba", "بجاية": "Béjaïa", "تيزي وزو": "Tizi Ouzou",
-    "البليدة": "Blida", "تلمسان": "Tlemcen", "بسكرة": "Biskra", "ورقلة": "Ouargla", "الشلف": "Chlef", "سكيكدة": "Skikda",
-    "جيجل": "Jijel", "المسيلة": "M'Sila", "بومرداس": "Boumerdès", "تيبازة": "Tipaza", "غرداية": "Ghardaïa", "مستغانم": "Mostaganem",
-}
-_AR_WILAYA = {"Algiers": "الجزائر", "Oran": "وهران", "Constantine": "قسنطينة", "Batna": "باتنة"}
 
 
 @dataclass
@@ -57,7 +50,6 @@ class Item:
 class Request:
     items: list[Item]
     budget_dzd: int | None
-    wilaya: str
 
     def summaries(self) -> tuple[str, str]:
         darija = " + ".join(item.label_darija for item in self.items)
@@ -65,9 +57,6 @@ class Request:
         if self.budget_dzd:
             darija += f"، الميزانية {self.budget_dzd:,} دج".replace(",", " ")
             english += f", budget {self.budget_dzd:,} DZD"
-        if self.wilaya:
-            darija += f"، الولاية: {_AR_WILAYA.get(self.wilaya, self.wilaya)}"
-            english += f", wilaya: {self.wilaya}"
         return darija, english
 
 
@@ -95,7 +84,6 @@ def parse(text: str) -> Request:
         budget = int(float(thousand.group(1).replace(",", ".")) * 10)
     elif k:
         budget = int(float(k.group(1).replace(",", ".")) * 1000)
-    wilaya = next((name for key, name in WILAYAS.items() if re.search(rf"(?:^|[\sلـ]){re.escape(key)}", text, flags=re.IGNORECASE)), "")
     segments = re.split(r"\s+و(?=\S)|\s+و\s+|,|،|\+|\bet\b|\band\b", text)
     items: list[Item] = []
     for segment in segments:
@@ -111,4 +99,4 @@ def parse(text: str) -> Request:
         items.append(Item(need=" ".join(([color[0]] if color else []) + ([modifier[0]] if modifier else []) + [need]),
                           search_keywords=" ".join(keywords), size=size.group(1).upper() if size else "",
                           color=color[0] if color else "", label_darija=label))
-    return Request(items=items, budget_dzd=budget, wilaya=wilaya)
+    return Request(items=items, budget_dzd=budget)

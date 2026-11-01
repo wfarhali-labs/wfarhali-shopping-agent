@@ -112,7 +112,7 @@ class ShoppingAgent:
         items = [{"need": str(i["need"]), "search_keywords": str(i["search_keywords"]), "size": str(i.get("size") or ""),
                   "color": str(i.get("color") or "")} for i in args["items"]]
         budget = args.get("budget_dzd")
-        understanding = {"items": items, "budget_dzd": int(budget) if budget else None, "wilaya": str(args.get("wilaya") or ""),
+        understanding = {"items": items, "budget_dzd": int(budget) if budget else None,
                          "summary_darija": str(args.get("summary_darija") or ""), "summary_en": str(args.get("summary_en") or "")}
         state["understanding"] = understanding
         extra_steps = []

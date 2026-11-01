@@ -25,7 +25,7 @@ customer: text / voice / photo (Darija, Arabic, French)
         │
         ▼
 Muse Voice Transcribe ─► Muse Spark (tool calling, sees photos)
-                              │ 1. record_understanding  products, sizes, colours, budget, wilaya;
+                              │ 1. record_understanding  products, sizes, colours, budget;
                               │                          with a photo: SAM 3.1 locates each item (check + cut-out);
                               │                          the agent searches the catalogue for each item at once
                               │    (search_catalogue      only to retry a need with other French keywords)
@@ -42,7 +42,7 @@ Design choices:
 - **Swap.** Each proposed product has a "بدّل · Swap" button: the agent re-plans the basket without the rejected product (two model calls, no new search) and keeps the other choices.
 - **One clarifying question** when the request is not actionable, with 2 to 4 tappable answers when the answer is a choice, then it continues with the whole conversation.
 - **Few model calls.** The catalogue searches run inside the understanding step, so a request needs three model calls (understand, plan, propose) whatever the number of products; the conversation is prompt-cached.
-- **Human in the loop.** Nothing is ordered without the customer's confirmation: "Confirm" opens WhatsApp with the basket written out (products, links, total, budget, wilaya, sizes) for the customer to send to Wfarhali's team, who confirm the final price. The agent never writes to Wfarhali's systems.
+- **Human in the loop.** Nothing is ordered without the customer's confirmation: "Confirm" opens WhatsApp with the basket written out (products, links, total, budget, sizes and colours) for the customer to send to Wfarhali's team, who confirm the final price. The agent never writes to Wfarhali's systems.
 
 ## Meta models
 
@@ -66,7 +66,7 @@ Open `.env` and set `WFAGENT_LLM=meta`, `WFAGENT_STT=meta`, `WFAGENT_SEGMENT=met
 uvicorn web.app:app --port 8000        # open http://localhost:8000
 ```
 The **EN** button at the top right switches the page to English (English first, the agent's Darija under it, English examples); the agent also understands English requests. Things to try (Darija, Arabic, French or English):
-- `نحوس على بوت شتاء أسود مقاس 39 وفاست، الميزانية 2 ملاين، أنا في قسنطينة` → black winter boots and a jacket from Wfarhali's catalogue within 20,000 DZD ("2 mlayen" is 2 million centimes).
+- `نحوس على بوت شتاء أسود مقاس 39 وفاست، الميزانية 2 ملاين` → black winter boots and a jacket from Wfarhali's catalogue within 20,000 DZD ("2 mlayen" is 2 million centimes).
 - `نحوس على روبا تاع خرجة بـ 300 ألف` → budget read as 3,000 DZD; nothing fits, so the cheapest dress is proposed with the overrun stated.
 - `صباط بـ 15 ألف` → the amount is ambiguous (150 DZD?), the agent asks which one you meant.
 - `عندي عرس الجمعة` → one clarifying question, then answer `روبة سهرة بـ مليون و200`.
