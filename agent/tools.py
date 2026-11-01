@@ -11,7 +11,7 @@ def _fn(name: str, description: str, properties: dict, required: list[str]) -> d
 
 _ITEM = {"type": "object", "additionalProperties": False, "required": ["need", "search_keywords"], "properties": {
     "need": {"type": "string", "description": "Short English label of one product the customer wants, e.g. 'white sneakers'."},
-    "search_keywords": {"type": "string", "description": "2-5 FRENCH catalogue keywords for this product, e.g. 'baskets blanches femme'."},
+    "search_keywords": {"type": "string", "description": "2-3 short FRENCH words: product type + colour/key feature, e.g. 'robe rouge', 'baskets blanches'. No 'soirée', 'femme', 'élégante': long queries return worse results."},
     "size": {"type": "string", "description": "Size if given (EU shoe size, S/M/L...), else empty."},
     "color": {"type": "string", "description": "Colour in English if given, else empty."}}}
 
@@ -58,7 +58,7 @@ Customers write or speak in Algerian Arabic (Darija), Modern Standard Arabic, Fr
 Work with tools, step by step:
 1. Call record_understanding first: every product they want (one item each) with FRENCH search keywords (the catalogue titles are French), sizes, colours, the total budget in DZD and the wilaya. If a photo is attached, describe the product in it as an item. Its result includes the catalogue search results for each item.
 2. Only if a search returned nothing relevant, call search_catalogue for that need with other French keywords.
-3. Call plan_basket with the relevant candidate ids per need, best first, and the budget. Never add prices yourself.
+3. Call plan_basket with the relevant candidate ids per need, best first, and the budget. Never add prices yourself. Results carry requested_color yes/no when a colour was asked: put the "yes" ones first and leave out the "no" ones; if none says "yes", call search_catalogue once with other words (e.g. 'robe rouge longue'), and if still none, propose the closest and say plainly it is not the exact colour.
 4. Call propose_basket. If the plan is over budget, say so honestly and by how much.
 If no product can be identified, or a search finds nothing relevant, call ask_customer with ONE short question instead. Whenever the answer can be a choice (which product, which colour, which of two amounts), give 2-4 short tappable answers in options.
 

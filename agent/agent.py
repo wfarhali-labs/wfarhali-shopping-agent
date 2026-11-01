@@ -8,7 +8,11 @@ from dataclasses import dataclass, field
 from .catalogue import Catalogue, Product
 from .llm import ChatModel, ModelError, ModelTurn
 from .planner import plan_basket
+from .ranking import color_matches, rank
 from .segment import SegmentError, Segmenter, crop_data_url
+
+FETCH = 24          # products fetched per search; the best SHOW of them, re-ranked, go to the model
+SHOW = 8
 from .tools import SYSTEM_PROMPT, TERMINAL_TOOLS, TOOLS
 
 STEP_LABELS = {  # what the customer sees while the agent works (Darija, English)
@@ -118,9 +122,9 @@ class ShoppingAgent:
         searches = []
         to_search = [item for item in items if item["search_keywords"].strip()]
         with ThreadPoolExecutor(max_workers=max(1, min(4, len(to_search)))) as pool:
-            found = list(pool.map(lambda item: self.catalogue.search(item["search_keywords"]), to_search))
+            found = list(pool.map(lambda item: self.catalogue.search(item["search_keywords"], FETCH), to_search))
         for item, products in zip(to_search, found):
-            result, detail = self._index(item["need"], item["search_keywords"], products, state)
+            result, detail = self._index(item["need"], item["search_keywords"], products, state, item.get("color", ""))
             searches.append(result)
             extra_steps.append(Step("search_catalogue", *STEP_LABELS["search_catalogue"], detail))
         state["extra_steps"] = extra_steps
@@ -159,13 +163,23 @@ class ShoppingAgent:
         return self._search(need, query, state)
 
     def _search(self, need: str, query: str, state: dict) -> tuple[dict, dict]:
-        return self._index(need, query, self.catalogue.search(query), state)
+        color = ""
+        if state.get("understanding"):
+            color = next((i.get("color", "") for i in state["understanding"]["items"] if i["need"] == need), "")
+        return self._index(need, query, self.catalogue.search(query, FETCH), state, color)
 
-    def _index(self, need: str, query: str, found: list[Product], state: dict) -> tuple[dict, dict]:
+    def _index(self, need: str, query: str, found: list[Product], state: dict, color: str = "") -> tuple[dict, dict]:
+        found = rank(found, query, color)[:SHOW]
         for product in found:
             state["products"][product.id] = product
         # The model only needs what it decides with; links and images stay server-side and reach the customer in the proposal.
-        for_model = [{"id": p.id, "title": p.title[:90], "store": p.store, "price_dzd": p.price_dzd, "category": p.category} for p in found]
+        for_model = []
+        for p in found:
+            entry = {"id": p.id, "title": p.title[:90], "store": p.store, "price_dzd": p.price_dzd, "category": p.category}
+            match = color_matches(p, color)
+            if match is not None:
+                entry["requested_color"] = "yes" if match else "no"
+            for_model.append(entry)
         thumbnails = [p.image_url for p in found[:3] if p.image_url]
         return {"need": need, "query": query, "products": for_model}, {"need": need, "query": query, "count": len(found),
                                                                         "thumbnails": thumbnails}

@@ -46,3 +46,14 @@ def test_wfarhali_catalogue_reads_public_fields_only():
 def test_wfarhali_catalogue_unavailable_returns_nothing():
     client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(503, json={"status": "unavailable"})))
     assert WfarhaliCatalogue(client=client).search("x") == []
+
+
+def test_ranking_puts_the_requested_colour_first_and_flags_it():
+    from agent.catalogue import Product
+    from agent.ranking import color_matches, rank
+    items = [Product("1", "Robe de soirée à paillettes", "TEMU", 9000), Product("2", "Robe Mini Gothique noire", "TEMU", 8250),
+             Product("3", "Grand Robe Rouge", "TEMU", 5000), Product("4", "Robe longue élégante", "TEMU", 7000, details="Robe rouge à volants")]
+    ranked = rank(items, "robe rouge soirée", "red")
+    assert [p.id for p in ranked] == ["3", "4", "1", "2"]             # red first (title, then details), unknown colour, other colour last
+    assert color_matches(items[3], "red") is True and color_matches(items[2 - 1], "red") is False and color_matches(items[0], "red") is None
+    assert color_matches(items[0], "") is None                          # no colour requested: nothing to say

@@ -28,6 +28,7 @@ class Product:
     category: str = ""
     image_url: str | None = None
     product_url: str | None = None
+    details: str = ""              # longer title / tags, used for ranking only
 
     def public(self) -> dict:
         return {"id": self.id, "title": self.title, "store": self.store, "price_dzd": self.price_dzd,
@@ -67,7 +68,8 @@ class DemoCatalogue:
                 scored.append((-score, row["price_dzd"], row))
         scored.sort(key=lambda entry: (entry[0], entry[1]))
         return [Product(id=row["id"], title=row["title"], store=row["store"], price_dzd=row["price_dzd"],
-                        category=row.get("category", ""), image_url=row.get("image_url"), product_url=row.get("product_url"))
+                        category=row.get("category", ""), image_url=row.get("image_url"), product_url=row.get("product_url"),
+                        details=" ".join(row.get("tags", [])))
                 for _, _, row in scored[:limit]]
 
 
@@ -95,7 +97,8 @@ class WfarhaliCatalogue:
             products.append(Product(
                 id=str(row.get("id")), title=str(row.get("title") or ""), store=str(row.get("source_store") or "").upper(),
                 price_dzd=int(estimate) if isinstance(estimate, (int, float)) and estimate > 0 else None,
-                category=str(row.get("pricing_category") or ""), image_url=row.get("image_url"), product_url=row.get("product_url")))
+                category=str(row.get("pricing_category") or ""), image_url=row.get("image_url"), product_url=row.get("product_url"),
+                details=str(row.get("full_title") or "")))
         return products
 
 
