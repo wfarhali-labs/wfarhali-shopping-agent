@@ -9,7 +9,7 @@
   const dzd = (n) => `≈ ${new Intl.NumberFormat('fr-FR').format(n)} دج`;
   let sessionId = '', photo = null, busy = false, whatsapp = '', understanding = null;
 
-  fetch('/api/health').then((r) => r.json()).then((h) => { whatsapp = h.whatsapp || ''; $('#mode').textContent = `${h.model} · ${h.catalogue} · ${h.speech}`; }).catch(() => {});
+  fetch('/api/health').then((r) => r.json()).then((h) => { whatsapp = h.whatsapp || ''; }).catch(() => {});   // /api/health still shows the configuration for diagnostics
 
   // The confirmed basket goes to Wfarhali's team as a WhatsApp message the customer sends themself (nothing touches the website).
   function whatsappMessage(p) {
