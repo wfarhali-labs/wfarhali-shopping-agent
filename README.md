@@ -48,9 +48,9 @@ Design choices:
 
 | Model | Use | Status |
 |---|---|---|
-| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live verified (Oct 27)**: Darija requests run through the full loop (understand + search → plan → propose) in 3 model calls, including against the live Wfarhali catalogue, with centime budgets and the swap flow; photos not yet run live |
-| **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | endpoint and response shape verified live (Oct 27); transcription of real Darija speech not yet verified (first browser test returned an empty transcript, diagnostics added) |
-| **SAM 3.1** (`sam-3.1`, Responses API) | locating the item in the customer's photo: Muse Spark names what it sees, SAM 3.1 is asked for that noun phrase; 0 matches = re-read or ask, 2+ = ask which one, 1 = the cut-out is shown to the customer | integrated and verified live (Oct 27) on a sample photo; behaviour on real product photos to be checked |
+| **Muse Spark** (`muse-spark-1.3`, Meta Model API, Chat Completions + tools) | understanding, decisions, tool calls, reading photos | **live verified (Oct 27–Nov 2)**: Darija, French and English requests run through the full loop (understand + search → plan → propose) in 3 model calls against the live Wfarhali catalogue, with centime budgets, clarifying questions, the swap flow and photos |
+| **Muse Voice Transcribe** (`muse-voice-transcribe-1.0`) | Darija / French voice notes to text | verified live (Nov 2) with a real Darija voice note recorded on a phone and sent as a file: transcript correct, basket proposed |
+| **SAM 3.1** (`sam-3.1`, Responses API) | locating the item in the customer's photo: Muse Spark names what it sees, SAM 3.1 is asked for that noun phrase; 0 matches = re-read or ask, 2+ = ask which one, 1 = the cut-out is shown to the customer | verified live (Nov 2) with a real product photo: item located, catalogue searched, honest proposal above the stated budget |
 
 ## For judges: run it in 3 minutes
 
