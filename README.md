@@ -38,7 +38,7 @@ Muse Voice Transcribe ─► Muse Spark (tool calling, sees photos)
 Design choices:
 - **The model decides, tools compute.** Muse Spark chooses what to search and which products are relevant; prices come only from tool results and totals from the planner, so the agent never invents a number.
 - **Money the way Algerians say it.** Budgets are often given in centimes ("300 alf" = 3,000 DZD, "melyoun w nos" = 15,000 DZD); the agent converts, repeats the amount in DZD in its summary so the customer can correct it, and asks when the reading is unclear.
-- **Honest over budget.** When nothing fits, the agent shows the cheapest basket and by how much it is over.
+- **Honest over budget.** When nothing fits, the agent does not hide products or bend prices: it proposes the closest basket and says plainly by how much it is over ("a nice dress, but 150 DZD over your 5,000 budget"), and the customer decides.
 - **Swap.** Each proposed product has a "بدّل · Swap" button: the agent re-plans the basket without the rejected product (two model calls, no new search) and keeps the other choices.
 - **One clarifying question** when the request is not actionable, with 2 to 4 tappable answers when the answer is a choice, then it continues with the whole conversation.
 - **Few model calls.** The catalogue searches run inside the understanding step, so a request needs three model calls (understand, plan, propose) whatever the number of products; the conversation is prompt-cached.
