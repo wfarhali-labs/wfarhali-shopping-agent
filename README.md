@@ -2,7 +2,7 @@
 
 **An AI shopping agent for Algeria.** A customer types, speaks or sends a photo, in **Algerian Arabic (Darija)**, Arabic or French. The agent understands the request, searches partner stores, plans a basket **within the customer's budget in Algerian dinars (DZD)**, asks when something is unclear, and prepares a price request that the customer confirms.
 
-> Darija is the Algerian Arabic dialect spoken by about 45 million people. Most AI tools do not understand it, yet it is how Algerians actually talk, and send voice notes, when they shop.
+> Darija is the Algerian Arabic dialect spoken by about 45 million people. Most mainstream AI tools handle it poorly, and almost none lets you shop in it, yet it is how Algerians actually talk, and send voice notes, when they buy.
 
 Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), track *Startups*, problem statement *Build for Your World*.
 

@@ -6,7 +6,7 @@ Wfarhali Agent is an AI shopping assistant for Algeria. Customers say what they 
 
 ## Full pitch (~250 words)
 
-**The problem.** 45 million people speak Algerian Darija, and almost no AI tool understands it. Algerians who want a product from abroad spend hours jumping from site to site, in languages they do not read well, with prices in currencies they cannot pay. Many have no international card. Most shop by sending voice notes.
+**The problem.** 45 million people speak Algerian Darija. Most mainstream AI tools handle it poorly, and none lets you shop in it. Algerians who want a product from abroad spend hours jumping from site to site, in languages they do not read well, with prices in currencies they cannot pay. Many have no international card. Most shop by sending voice notes.
 
 **What Wfarhali does.** Wfarhali (wfarhali.com) is a live Algerian service: customers order products from international stores, Wfarhali verifies, prices in dinars, pays abroad and delivers. Before the hackathon it had a website and a product search.
 
@@ -23,7 +23,7 @@ Wfarhali Agent is an AI shopping assistant for Algeria. Customers say what they 
 
 ## البيتش بالعربية (للعرض الشفهي)
 
-**المشكل.** 45 مليون يهدرو الدارجة الجزائرية، وتقريبًا حتى أداة ذكاء اصطناعي ما تفهمها. الجزائري لي يحب منتج من برّا يضيّع ساعات يحوّس من موقع لموقع، بلغات ما يقراهاش مليح، وبأسعار بعملات ما يقدرش يخلّص بيها. وبزاف ما عندهمش بطاقة دولية.
+**المشكل.** 45 مليون يهدرو الدارجة الجزائرية. أغلب أدوات الذكاء الاصطناعي المشهورة تتعثر فيها، وحتى وحدة ما تخلّيك تتسوّق بيها. الجزائري لي يحب منتج من برّا يضيّع ساعات يحوّس من موقع لموقع، بلغات ما يقراهاش مليح، وبأسعار بعملات ما يقدرش يخلّص بيها. وبزاف ما عندهمش بطاقة دولية.
 
 **وفرهالي.** خدمة حقيقية: الزبون يطلب من متاجر عالمية، وفرهالي تتحقق، تسعّر بالدينار، تخلّص برّا وتوصّل. قبل المسابقة كان عندها موقع وبحث.
 
