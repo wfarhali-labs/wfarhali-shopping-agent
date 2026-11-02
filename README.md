@@ -56,6 +56,8 @@ Design choices:
 
 ## For judges: run it in 3 minutes
 
+Shortest path: `./run.sh` (macOS/Linux) or double-click `run.bat` (Windows). It creates the virtualenv, installs the requirements, creates `.env` in offline demo mode and starts the app on http://localhost:8000. Edit `.env` as described below to use Meta's models. Step by step:
+
 ```bash
 git clone https://github.com/wfarhali-labs/wfarhali-shopping-agent.git
 cd wfarhali-shopping-agent
