@@ -15,7 +15,7 @@
 
   // The confirmed basket goes to Wfarhali's team as a WhatsApp message the customer sends themself (nothing touches the website).
   function whatsappMessage(p) {
-    const lines = ['سلام وفرهالي 👋 حاب نأكد طلب السعر لهذه السلة (من وكيل وفرهالي):'];
+    const lines = ['سلام وفرهالي، حاب نأكد طلب السعر لهذه السلة (من وكيل وفرهالي):'];   // plain text: WhatsApp's redirect page showed the emoji as a broken character
     p.items.forEach((item, i) => {
       lines.push(`${i + 1}. ${item.title} — ${item.store || ''} — ${item.price_dzd ? '≈ ' + item.price_dzd + ' دج' : 'السعر يتأكد'}`);
       if (item.product_url) lines.push(item.product_url);
